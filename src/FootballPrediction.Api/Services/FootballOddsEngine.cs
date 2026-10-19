@@ -276,6 +276,7 @@ public static class FootballOddsEngine
         }
 
         var candidatePicks = new List<FootballParlayPickDto>();
+        var matchPicksMap = new Dictionary<string, List<FootballParlayPickDto>>();
 
         foreach (var m in rangeMatches)
         {
@@ -732,18 +733,79 @@ public static class FootballOddsEngine
 
             if (validPicks.Any())
             {
+                matchPicksMap[m.Id] = validPicks;
                 // Pick the highest confidence pick for this match (and best odds)
                 var best = validPicks.OrderByDescending(p => p.ConfidencePercentage).ThenByDescending(p => p.Odds).First();
                 candidatePicks.Add(best);
             }
         }
 
-        // Sort candidate matches by highest confidence first
-        var selectedPicks = candidatePicks
-            .OrderByDescending(p => p.ConfidencePercentage)
-            .ThenByDescending(p => p.Odds)
-            .Take(targetMatches)
-            .ToList();
+        bool isAllMarkets = string.IsNullOrWhiteSpace(request.MarketPreference) || request.MarketPreference.Equals("All", StringComparison.OrdinalIgnoreCase);
+
+        List<FootballParlayPickDto> selectedPicks;
+
+        if (isAllMarkets && matchPicksMap.Any())
+        {
+            selectedPicks = new List<FootballParlayPickDto>();
+            var usedMarketCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var usedMatchIds = new HashSet<string>();
+
+            // Maximum allowed picks for the exact same market type (ensures diverse mix parlay)
+            int maxPerMarket = Math.Max(2, (int)Math.Ceiling((double)targetMatches / 5));
+
+            // Pass 1: Select highest confidence picks across matches while enforcing market diversity
+            foreach (var kvp in matchPicksMap)
+            {
+                if (selectedPicks.Count >= targetMatches) break;
+
+                var picksForMatch = kvp.Value
+                    .OrderByDescending(p => p.ConfidencePercentage)
+                    .ThenByDescending(p => p.Odds)
+                    .ToList();
+
+                var pick = picksForMatch.FirstOrDefault(p =>
+                    !usedMarketCounts.TryGetValue(p.MarketType, out var count) || count < maxPerMarket);
+
+                if (pick != null)
+                {
+                    selectedPicks.Add(pick);
+                    usedMatchIds.Add(kvp.Key);
+                    usedMarketCounts[pick.MarketType] = usedMarketCounts.GetValueOrDefault(pick.MarketType, 0) + 1;
+                }
+            }
+
+            // Pass 2: If we still need more picks to fulfill targetMatches, take best available from remaining matches
+            if (selectedPicks.Count < targetMatches)
+            {
+                foreach (var kvp in matchPicksMap)
+                {
+                    if (selectedPicks.Count >= targetMatches) break;
+                    if (usedMatchIds.Contains(kvp.Key)) continue;
+
+                    var pick = kvp.Value
+                        .OrderByDescending(p => p.ConfidencePercentage)
+                        .ThenByDescending(p => p.Odds)
+                        .FirstOrDefault();
+
+                    if (pick != null)
+                    {
+                        selectedPicks.Add(pick);
+                        usedMatchIds.Add(kvp.Key);
+                    }
+                }
+            }
+
+            // Order selected parlay picks by confidence
+            selectedPicks = selectedPicks.OrderByDescending(p => p.ConfidencePercentage).ThenByDescending(p => p.Odds).ToList();
+        }
+        else
+        {
+            selectedPicks = candidatePicks
+                .OrderByDescending(p => p.ConfidencePercentage)
+                .ThenByDescending(p => p.Odds)
+                .Take(targetMatches)
+                .ToList();
+        }
 
         // Calculate combined odds
         double combinedOdds = 1.0;
