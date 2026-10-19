@@ -49,7 +49,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Support Blazor WASM static files & WebAssembly MIME types
+// Support Blazor WASM framework files, pre-compression (.br, .gz), & MIME types
+app.UseBlazorFrameworkFiles();
 app.UseDefaultFiles();
 var contentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
 contentTypeProvider.Mappings[".wasm"] = "application/wasm";
