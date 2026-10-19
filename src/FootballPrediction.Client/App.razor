@@ -1,0 +1,21 @@
+<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>404 - Not Found | CYBER PREDICT</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <div style="text-align: center; padding: 80px 20px;">
+                <div style="font-size: 54px; margin-bottom: 12px;">🛸</div>
+                <h1 style="color: var(--neon-cyan); font-family: var(--font-tech); font-size: 32px; letter-spacing: 2px;">404 - PAGE NOT FOUND</h1>
+                <p style="color: var(--text-secondary); margin: 12px 0 24px; font-size: 15px;">ရှာဖွေနေသော စာမျက်နှာကို မတွေ့ရှိပါ။ လိပ်စာမှန်ကန်မှု ရှိမရှိ စစ်ဆေးပါ</p>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <a href="" class="btn-cyber" style="text-decoration: none;">⚽ ဘောပွဲခန့်မှန်းချက်များ</a>
+                    <a href="twod" class="btn-cyber" style="text-decoration: none; background: rgba(0, 245, 160, 0.2); border-color: var(--neon-green); color: var(--neon-green);">🎲 2D Live & AI</a>
+                    <a href="threed" class="btn-cyber" style="text-decoration: none; background: rgba(255, 183, 3, 0.2); border-color: var(--neon-gold); color: var(--neon-gold);">🎯 3D Forecast</a>
+                </div>
+            </div>
+        </LayoutView>
+    </NotFound>
+</Router>

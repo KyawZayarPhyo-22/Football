@@ -1,0 +1,2282 @@
+@page "/"
+@page "/football"
+@page "/home"
+@inject PredictionApiClient ApiClient
+@inject IJSRuntime JSRuntime
+
+<style>
+/* ==========================================================================
+   CYBER FOOTBALL CALENDAR SYSTEM (EMBEDDED)
+   ========================================================================== */
+.cyber-calendar-container {
+    background: rgba(14, 20, 36, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(0, 210, 255, 0.25) !important;
+    border-radius: 16px !important;
+    padding: 18px 20px !important;
+    margin-bottom: 24px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(0, 210, 255, 0.03) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+.cyber-calendar-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00d2ff, #00f59b, transparent);
+}
+
+.calendar-top-bar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+    padding-bottom: 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.calendar-heading {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    flex-wrap: wrap !important;
+}
+
+.calendar-title-badge {
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.5px !important;
+    color: #00d2ff !important;
+    background: rgba(0, 210, 255, 0.12) !important;
+    border: 1px solid rgba(0, 210, 255, 0.35) !important;
+    padding: 4px 12px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.calendar-active-label {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.calendar-actions-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+
+.cyber-date-picker {
+    background: rgba(7, 10, 19, 0.85) !important;
+    border: 1px solid rgba(0, 210, 255, 0.4) !important;
+    border-radius: 8px !important;
+    padding: 7px 12px !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    outline: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+.cyber-date-picker:focus {
+    border-color: #00f59b !important;
+    box-shadow: 0 0 12px rgba(0, 245, 155, 0.3) !important;
+}
+.cyber-date-picker::-webkit-calendar-picker-indicator {
+    filter: invert(1) hue-rotate(140deg) brightness(1.2);
+    cursor: pointer;
+}
+
+.btn-cal-jump {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #cbd5e1 !important;
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+.btn-cal-jump:hover {
+    background: rgba(0, 210, 255, 0.15) !important;
+    border-color: #00d2ff !important;
+    color: #00d2ff !important;
+}
+.btn-cal-jump.active {
+    background: rgba(0, 245, 155, 0.2) !important;
+    border-color: #00f59b !important;
+    color: #00f59b !important;
+    box-shadow: 0 0 10px rgba(0, 245, 155, 0.2) !important;
+}
+
+.calendar-slider-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    position: relative !important;
+}
+
+.calendar-nav-btn {
+    background: rgba(7, 10, 19, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #00d2ff !important;
+    width: 36px !important;
+    height: 48px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    flex-shrink: 0 !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+}
+.calendar-nav-btn:hover {
+    background: rgba(0, 210, 255, 0.2) !important;
+    border-color: #00d2ff !important;
+    color: #fff !important;
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.3) !important;
+}
+
+.calendar-days-track {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    scroll-behavior: smooth !important;
+    padding: 6px 2px 10px 2px !important;
+    flex-grow: 1 !important;
+    white-space: nowrap !important;
+}
+.calendar-days-track::-webkit-scrollbar {
+    height: 4px;
+}
+.calendar-days-track::-webkit-scrollbar-thumb {
+    background: rgba(0, 210, 255, 0.2);
+    border-radius: 2px;
+}
+
+.calendar-day-card {
+    min-width: 84px !important;
+    background: rgba(7, 10, 19, 0.65) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 10px !important;
+    padding: 8px 6px !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    transition: all 0.22s ease !important;
+    flex-shrink: 0 !important;
+    user-select: none !important;
+    position: relative !important;
+    display: inline-flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 3px !important;
+}
+.calendar-day-card:hover {
+    background: rgba(14, 24, 48, 0.85) !important;
+    border-color: rgba(0, 210, 255, 0.4) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 210, 255, 0.15) !important;
+}
+.calendar-day-card.selected {
+    background: linear-gradient(180deg, rgba(0, 210, 255, 0.22) 0%, rgba(9, 17, 36, 0.95) 100%) !important;
+    border-color: #00d2ff !important;
+    box-shadow: 0 0 16px rgba(0, 210, 255, 0.35) !important;
+    transform: translateY(-2px);
+}
+.calendar-day-card.selected::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 15%;
+    right: 15%;
+    height: 3px;
+    background: #00d2ff;
+    border-radius: 3px;
+    box-shadow: 0 0 8px #00d2ff;
+}
+
+.day-tag {
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    padding: 1px 5px !important;
+    border-radius: 4px !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+}
+.day-tag-today {
+    background: rgba(0, 245, 155, 0.2) !important;
+    color: #00f59b !important;
+    border: 1px solid rgba(0, 245, 155, 0.4) !important;
+}
+.day-tag-tomorrow {
+    background: rgba(255, 183, 3, 0.2) !important;
+    color: #ffb703 !important;
+    border: 1px solid rgba(255, 183, 3, 0.4) !important;
+}
+
+.day-dow {
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #94a3b8 !important;
+    letter-spacing: 1px !important;
+}
+.calendar-day-card.selected .day-dow {
+    color: #00d2ff !important;
+}
+
+.day-num {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    color: #fff !important;
+}
+
+.day-matches-count {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+}
+.day-matches-count.has-matches {
+    background: rgba(0, 245, 155, 0.15) !important;
+    color: #00f59b !important;
+    border: 1px solid rgba(0, 245, 155, 0.3) !important;
+}
+.day-matches-count.no-matches {
+    color: #64748b !important;
+}
+
+.calendar-filter-bar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    margin-top: 14px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.calendar-search-input {
+    background: rgba(7, 10, 19, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    color: #fff !important;
+    font-size: 13px !important;
+    min-width: 240px !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+}
+.calendar-search-input:focus {
+    border-color: #00d2ff !important;
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.2) !important;
+}
+
+/* ==========================================================================
+   1XBET MIX PARLAY (မောင်းတွဲ) MODAL & SLIP STYLES (EMBEDDED)
+   ========================================================================== */
+.btn-parlay-hero {
+    background: linear-gradient(135deg, rgba(255, 183, 3, 0.25) 0%, rgba(0, 245, 155, 0.25) 100%) !important;
+    border: 1px solid #ffb703 !important;
+    color: #fff !important;
+    padding: 8px 18px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    box-shadow: 0 0 15px rgba(255, 183, 3, 0.25) !important;
+}
+.btn-parlay-hero:hover {
+    background: linear-gradient(135deg, rgba(255, 183, 3, 0.4) 0%, rgba(0, 245, 155, 0.4) 100%) !important;
+    box-shadow: 0 0 25px rgba(255, 183, 3, 0.45) !important;
+    transform: translateY(-2px);
+    color: #fff !important;
+}
+
+.parlay-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(4, 7, 16, 0.88) !important;
+    backdrop-filter: blur(14px) !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 16px !important;
+}
+
+.parlay-modal-box {
+    width: 100% !important;
+    max-width: 760px !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+    background: #0d1426 !important;
+    border: 1px solid rgba(255, 183, 3, 0.4) !important;
+    border-radius: 20px !important;
+    padding: 26px 28px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(255, 183, 3, 0.2) !important;
+    position: relative !important;
+}
+
+.parlay-modal-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    padding-bottom: 16px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    margin-bottom: 20px !important;
+}
+
+.parlay-modal-title {
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.parlay-close-btn {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: none !important;
+    color: #fff !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    font-size: 16px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+}
+.parlay-close-btn:hover {
+    background: rgba(255, 51, 102, 0.3) !important;
+    color: #ff3366 !important;
+}
+
+.parlay-form-row {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+    gap: 16px !important;
+    margin-bottom: 18px !important;
+}
+
+.parlay-chip-group {
+    display: flex !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    margin-top: 6px !important;
+}
+
+.parlay-chip {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #cbd5e1 !important;
+    padding: 6px 14px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+.parlay-chip:hover {
+    border-color: #00d2ff !important;
+    color: #00d2ff !important;
+}
+.parlay-chip.active {
+    background: rgba(0, 245, 155, 0.2) !important;
+    border-color: #00f59b !important;
+    color: #00f59b !important;
+    box-shadow: 0 0 10px rgba(0, 245, 155, 0.25) !important;
+}
+
+.parlay-slip-box {
+    background: rgba(7, 10, 19, 0.7) !important;
+    border: 1px solid rgba(0, 245, 155, 0.35) !important;
+    border-radius: 14px !important;
+    padding: 20px !important;
+    margin-top: 22px !important;
+    box-shadow: 0 0 20px rgba(0, 245, 155, 0.08) !important;
+}
+
+.parlay-slip-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    padding-bottom: 14px !important;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.15) !important;
+    margin-bottom: 16px !important;
+}
+
+.parlay-pick-row {
+    background: rgba(14, 20, 36, 0.65) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    margin-bottom: 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    transition: all 0.2s ease !important;
+}
+.parlay-pick-row:hover {
+    border-color: rgba(0, 210, 255, 0.35) !important;
+    background: rgba(20, 30, 52, 0.8) !important;
+}
+
+.calendar-grid-cell {
+    border-radius: 8px !important;
+    padding: 6px 4px !important;
+    text-align: center !important;
+    min-height: 56px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    user-select: none !important;
+}
+.calendar-grid-cell:hover {
+    border-color: #00d2ff !important;
+    background: rgba(0, 210, 255, 0.15) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 210, 255, 0.2) !important;
+}
+.calendar-grid-cell.selected {
+    background: linear-gradient(180deg, rgba(0, 210, 255, 0.28) 0%, rgba(9, 17, 36, 0.98) 100%) !important;
+    border-color: #00d2ff !important;
+    box-shadow: 0 0 16px rgba(0, 210, 255, 0.4) !important;
+}
+.calendar-grid-cell.today-cell {
+    border-color: #00f59b !important;
+}
+
+.pick-team-info {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.pick-logo-mini {
+    width: 24px !important;
+    height: 24px !important;
+    object-fit: contain !important;
+}
+
+.pick-selection-tag {
+    background: rgba(255, 183, 3, 0.15) !important;
+    border: 1px solid rgba(255, 183, 3, 0.4) !important;
+    color: #ffb703 !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+.pick-odds-badge {
+    font-family: 'Rajdhani', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    color: #00f59b !important;
+    background: rgba(0, 245, 155, 0.12) !important;
+    border: 1px solid rgba(0, 245, 155, 0.3) !important;
+    padding: 4px 10px !important;
+    border-radius: 6px !important;
+}
+
+.parlay-summary-card {
+    background: linear-gradient(135deg, rgba(255, 183, 3, 0.12) 0%, rgba(0, 245, 155, 0.12) 100%) !important;
+    border: 1px solid rgba(255, 183, 3, 0.35) !important;
+    border-radius: 12px !important;
+    padding: 16px 20px !important;
+    margin-top: 18px !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+    gap: 14px !important;
+    text-align: center !important;
+}
+
+.parlay-stat-val {
+    font-size: 22px !important;
+    font-weight: 800 !important;
+    font-family: 'Rajdhani', sans-serif !important;
+    color: #fff !important;
+}
+
+.parlay-date-card {
+    background: rgba(7, 10, 19, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+.parlay-date-card:hover {
+    border-color: rgba(0, 210, 255, 0.4) !important;
+    background: rgba(14, 20, 36, 0.85) !important;
+}
+.parlay-date-card.active-target {
+    border-color: #00d2ff !important;
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.2) 0%, rgba(7, 10, 19, 0.95) 100%) !important;
+    box-shadow: 0 0 14px rgba(0, 210, 255, 0.35) !important;
+}
+
+.parlay-calendar-cell {
+    border-radius: 8px !important;
+    padding: 6px 3px !important;
+    text-align: center !important;
+    min-height: 52px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    user-select: none !important;
+}
+.parlay-calendar-cell:hover {
+    border-color: #00d2ff !important;
+    background: rgba(0, 210, 255, 0.18) !important;
+    transform: translateY(-2px);
+}
+.parlay-calendar-cell.is-endpoint {
+    background: linear-gradient(180deg, rgba(0, 210, 255, 0.35) 0%, rgba(9, 17, 36, 0.95) 100%) !important;
+    border: 1.5px solid #00d2ff !important;
+    box-shadow: 0 0 12px rgba(0, 210, 255, 0.45) !important;
+}
+.parlay-calendar-cell.in-range {
+    background: rgba(0, 210, 255, 0.12) !important;
+    border-color: rgba(0, 210, 255, 0.4) !important;
+}
+</style>
+
+<PageTitle>Football Match Calendar & AI Predictions | CYBER PREDICT</PageTitle>
+
+<!-- Hero Section -->
+<div class="hero-hud">
+    <div class="hero-title">
+        <span>⚽ ဘောပွဲ AI ခန့်မှန်းချက်များနှင့် တိကျသော ပွဲစဉ်ပြက္ခဒိန်</span>
+        <span class="badge-odds" style="font-size: 13px; background: rgba(0,210,255,0.15); color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 4px 10px; border-radius: 6px;">
+            @GetSelectedDateBadgeTitle()
+        </span>
+    </div>
+    <p class="hero-desc">
+        ပြက္ခဒိန် (Calendar) ဖြင့် မည်သည့်ရက်စွဲကိုမဆို တိကျစွာ ရွေးချယ်နိုင်ပြီး ထိပ်တန်းလိဂ်များ၏ တရားဝင် ပွဲစဉ်အချိန်ဇယား (FotMob Live Feed)၊ မြန်မာကြေး (Body/Ma)၊ 1xBet ကြေးများနှင့် <strong>1xBet ၈၀%+ အသေချာဆုံး မောင်းတွဲဖောက်စနစ် (Mix Parlay Generator)</strong> များကို အချိန်နှင့်တပြေးညီ အသုံးပြုနိုင်ပါသည်။
+    </p>
+
+    <div class="hero-stats-row">
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">ရွေးချယ်ထားသော ပွဲစဉ်ပေါင်း</span>
+            <span class="hero-stat-val">@(filteredMatches.Count()) MATCHES</span>
+        </div>
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">ရက်စွဲ အခြေအနေ</span>
+            <span class="hero-stat-val" style="color: var(--neon-green);">@GetDateStatusText()</span>
+        </div>
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">1xBet မောင်းတွဲစနစ်</span>
+            <span class="hero-stat-val" style="color: var(--neon-gold);">80%+ SURE ACCA</span>
+        </div>
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">Web Grounding</span>
+            <span class="hero-stat-val" style="color: var(--neon-cyan);">FOTMOB &amp; LIVE INTEL</span>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================== -->
+<!-- 🗓️ INTERACTIVE CYBER MATCH CALENDAR                                      -->
+<!-- ======================================================================== -->
+<div class="cyber-calendar-container">
+    <!-- Top Bar: Title & Fast Jump Buttons & Parlay Trigger -->
+    <div class="calendar-top-bar">
+        <div class="calendar-heading">
+            <div class="calendar-title-badge">
+                <span>🗓️ ပွဲစဉ် ပြက္ခဒိန်</span>
+                <span style="font-size: 11px; opacity: 0.8;">MATCH CALENDAR</span>
+            </div>
+            <div class="calendar-active-label">
+                <span>📅 @GetActiveDateLongMyanmarString()</span>
+                <span style="font-size: 12px; color: var(--neon-cyan); font-weight: 600; background: rgba(0,210,255,0.12); padding: 2px 8px; border-radius: 4px;">
+                    @(filteredMatches.Count()) ပွဲ တွေ့ရှိ
+                </span>
+            </div>
+        </div>
+
+        <div class="calendar-actions-group">
+            <!-- 🎯 MIX PARLAY HERO BUTTON -->
+            <button class="btn-parlay-hero" @onclick="OpenParlayModal" title="၈၀% အသေချာဆုံး 1xBet မောင်းတွဲ ဖောက်ရန်">
+                <span>🎯 1xBet မောင်းတွဲဖောက်မည်</span>
+            </button>
+
+            <button class="btn-cal-jump @(isTodaySelected ? "active" : "")" @onclick="SelectToday">
+                🟢 ဒီနေ့ (Today)
+            </button>
+            <button class="btn-cal-jump @(isTomorrowSelected ? "active" : "")" @onclick="SelectTomorrow">
+                ⚡ မနက်ဖြန် (Tomorrow)
+            </button>
+            <button class="btn-cal-jump @(isAllSelected ? "active" : "")" @onclick="SelectAllUpcoming">
+                🗓️ လာမည့်ရက်အားလုံး (All)
+            </button>
+
+            <!-- Interactive Cyber Calendar UI Button -->
+            <button type="button" class="btn-cal-jump" @onclick="OpenCalendarModal" title="Cyber Visual ပြက္ခဒိန် ဖွင့်ရန်" 
+                    style="border-color: rgba(0,210,255,0.45); background: linear-gradient(135deg, rgba(0,210,255,0.18) 0%, rgba(7,10,19,0.85) 100%); color: #fff;">
+                <span>🗓️</span>
+                <span style="font-weight: 700;">ပြက္ခဒိန် UI ရွေးရန်</span>
+                <span style="font-size: 10px; color: var(--neon-cyan);">▼</span>
+            </button>
+
+            <button type="button" class="btn-cal-jump" @onclick="ToggleInlineCalendar" title="ပြက္ခဒိန် မြင်ကွင်း ပြောင်းရန်" style="border-color: rgba(255,183,3,0.3); color: var(--neon-gold);">
+                @(isMonthGridInline ? "◄ ရက်စွဲ ဆလိုက်ဒါ (Strip)" : "📅 လပြက္ခဒိန် (Month View)")
+            </button>
+
+            <button class="btn-cal-jump" @onclick="ForceRefreshMatches" title="FotMob Live Feed အသစ် ပြန်လည်ရယူရန်" disabled="@isLoading">
+                <span class="@(isLoading ? "spinner-border spinner-border-sm" : "")">🔄</span>
+                <span>Live Sync</span>
+            </button>
+        </div>
+    </div>
+
+    @if (isMonthGridInline)
+    {
+        <!-- Inline Full Month Grid View -->
+        <div style="background: rgba(7, 10, 19, 0.75); border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 14px; padding: 16px; margin-bottom: 14px;">
+            <!-- Month Header with navigation -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <button type="button" class="btn-cal-jump" @onclick="() => ChangeCalendarMonth(-1)">
+                    ◀ ယခင်လ
+                </button>
+                <div style="font-family: var(--font-tech); font-size: 18px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: var(--neon-cyan);">@calendarViewMonth.ToString("MMMM yyyy", new System.Globalization.CultureInfo("en-US"))</span>
+                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">(@GetMyanmarMonthYearName(calendarViewMonth))</span>
+                </div>
+                <button type="button" class="btn-cal-jump" @onclick="() => ChangeCalendarMonth(1)">
+                    နောက်လ ▶
+                </button>
+            </div>
+
+            <!-- DOW headers -->
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; margin-bottom: 8px;">
+                @foreach (var dow in new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" })
+                {
+                    <div style="font-family: var(--font-tech); font-size: 11px; font-weight: 700; color: var(--neon-cyan); padding: 4px 0; background: rgba(0,210,255,0.08); border-radius: 6px;">
+                        @dow
+                    </div>
+                }
+            </div>
+
+            <!-- Days Grid -->
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
+                @foreach (var cell in GetMonthCalendarDays(calendarViewMonth))
+                {
+                    var cellDateStr = cell.Date.ToString("yyyy-MM-dd");
+                    var isSelected = (selectedDate == cellDateStr);
+
+                    <div class="calendar-grid-cell @(isSelected ? "selected" : "") @(cell.IsToday ? "today-cell" : "")"
+                         style="background: @(isSelected ? "linear-gradient(180deg, rgba(0,210,255,0.25) 0%, rgba(9,17,36,0.95) 100%)" : cell.IsCurrentMonth ? "rgba(7,10,19,0.7)" : "rgba(7,10,19,0.25)");
+                                border: 1px solid @(isSelected ? "var(--neon-cyan)" : cell.IsToday ? "var(--neon-green)" : cell.IsCurrentMonth ? "rgba(255,255,255,0.08)" : "transparent");"
+                         @onclick="() => SelectDate(cellDateStr)">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 4px;">
+                            <span style="font-size: 13px; font-weight: 800; color: @(isSelected ? "var(--neon-cyan)" : cell.IsCurrentMonth ? "#fff" : "rgba(255,255,255,0.25)"); font-family: var(--font-tech);">
+                                @cell.Date.Day
+                            </span>
+                            @if (cell.IsToday)
+                            {
+                                <span style="font-size: 8px; font-weight: 800; background: rgba(0,245,155,0.2); color: var(--neon-green); border: 1px solid rgba(0,245,155,0.4); padding: 0 3px; border-radius: 3px;">
+                                    TODAY
+                                </span>
+                            }
+                            else if (cell.IsTomorrow)
+                            {
+                                <span style="font-size: 8px; font-weight: 800; background: rgba(255,183,3,0.2); color: var(--neon-gold); border: 1px solid rgba(255,183,3,0.4); padding: 0 3px; border-radius: 3px;">
+                                    TMRW
+                                </span>
+                            }
+                        </div>
+
+                        <div style="margin-top: 4px;">
+                            @if (cell.MatchCount > 0)
+                            {
+                                <span style="font-size: 10px; font-weight: 800; background: rgba(0,245,155,0.15); color: var(--neon-green); border: 1px solid rgba(0,245,155,0.3); padding: 1px 5px; border-radius: 6px; font-family: var(--font-code);">
+                                    @cell.MatchCount ပွဲ
+                                </span>
+                            }
+                            else if (cell.IsCurrentMonth)
+                            {
+                                <span style="font-size: 9px; color: var(--text-muted);">-</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Day Slider Strip: Quick Day Chips -->
+        <div class="calendar-slider-wrapper">
+            <button class="calendar-nav-btn" @onclick="() => NavigateDay(-1)" title="ယခင်ရက်သို့ (Previous Day)">
+                ‹
+            </button>
+
+            <div class="calendar-days-track">
+                @foreach (var day in calendarDays)
+                {
+                    var isSelected = (selectedDate == day.Date);
+                    <div class="calendar-day-card @(isSelected ? "selected" : "")" @onclick="() => SelectDate(day.Date)">
+                        @if (day.IsToday)
+                        {
+                            <span class="day-tag day-tag-today">TODAY</span>
+                        }
+                        else if (day.IsTomorrow)
+                        {
+                            <span class="day-tag day-tag-tomorrow">TMRW</span>
+                        }
+
+                        <span class="day-dow">@day.DisplayDayOfWeek</span>
+                        <span class="day-num">@day.DisplayDate</span>
+                        <span class="day-matches-count @(day.MatchCount > 0 ? "has-matches" : "no-matches")">
+                            @(day.MatchCount > 0 ? $"{day.MatchCount} ပွဲ" : "ပွဲမရှိ")
+                        </span>
+                    </div>
+                }
+            </div>
+
+            <button class="calendar-nav-btn" @onclick="() => NavigateDay(1)" title="နောက်ရက်သို့ (Next Day)">
+                ›
+            </button>
+        </div>
+    }
+
+    <!-- Filter & Search Bar -->
+    <div class="calendar-filter-bar">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <!-- League Select with Country Separation (<optgroup>) -->
+            <select class="settings-input" style="width: auto; padding: 7px 14px; border-color: rgba(0,210,255,0.4);" 
+                    value="@selectedLeague" @onchange="OnLeagueDropdownChanged">
+                <option value="All">🏆 လိဂ်အားလုံး (All Leagues)</option>
+
+                <optgroup label="🏴󠁧󠁢󠁥󠁮󠁧󠁿 England (အင်္ဂလန် လိဂ်များ)">
+                    <option value="Country:England">🏴󠁧󠁢󠁥󠁮󠁧󠁿 အင်္ဂလန် လိဂ်အားလုံး (All England Leagues)</option>
+                    <option value="English Premier League">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</option>
+                    <option value="English Championship">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Championship</option>
+                </optgroup>
+
+                <optgroup label="🇪🇸 Spain (စပိန် လိဂ်များ)">
+                    <option value="Country:Spain">🇪🇸 စပိန် လိဂ်အားလုံး (All Spain Leagues)</option>
+                    <option value="Spanish La Liga">🇪🇸 La Liga</option>
+                </optgroup>
+
+                <optgroup label="🇩🇪 Germany (ဂျာမနီ လိဂ်များ)">
+                    <option value="Country:Germany">🇩🇪 ဂျာမနီ လိဂ်အားလုံး (All Germany Leagues)</option>
+                    <option value="German Bundesliga">🇩🇪 Bundesliga</option>
+                </optgroup>
+
+                <optgroup label="🇮🇹 Italy (အီတလီ လိဂ်များ)">
+                    <option value="Country:Italy">🇮🇹 အီတလီ လိဂ်အားလုံး (All Italy Leagues)</option>
+                    <option value="Italian Serie A">🇮🇹 Serie A</option>
+                </optgroup>
+
+                <optgroup label="🇫🇷 France (ပြင်သစ် လိဂ်များ)">
+                    <option value="Country:France">🇫🇷 ပြင်သစ် လိဂ်အားလုံး (All France Leagues)</option>
+                    <option value="French Ligue 1">🇫🇷 Ligue 1</option>
+                </optgroup>
+
+                <optgroup label="🇵🇹 Portugal (ပေါ်တူဂီ လိဂ်များ)">
+                    <option value="Country:Portugal">🇵🇹 ပေါ်တူဂီ လိဂ်အားလုံး (All Portugal Leagues)</option>
+                    <option value="Portuguese Primeira Liga">🇵🇹 Primeira Liga (Liga Portugal)</option>
+                </optgroup>
+
+                <optgroup label="🇳🇱 Netherlands (နယ်သာလန် လိဂ်များ)">
+                    <option value="Country:Netherlands">🇳🇱 နယ်သာလန် လိဂ်အားလုံး (All Netherlands Leagues)</option>
+                    <option value="Dutch Eredivisie">🇳🇱 Eredivisie</option>
+                </optgroup>
+
+                <optgroup label="🇺🇸 United States (အမေရိကန် လိဂ်များ)">
+                    <option value="Country:USA">🇺🇸 အမေရိကန် လိဂ်အားလုံး (All USA Leagues)</option>
+                    <option value="USA Major League Soccer">🇺🇸 Major League Soccer (MLS)</option>
+                </optgroup>
+
+                <optgroup label="🇹🇷 Turkey (တူရကီ လိဂ်များ)">
+                    <option value="Country:Turkey">🇹🇷 တူရကီ လိဂ်အားလုံး (All Turkey Leagues)</option>
+                    <option value="Turkish Süper Lig">🇹🇷 Süper Lig</option>
+                </optgroup>
+
+                <optgroup label="🇪🇺 European Cups (ဥရောပ ဖလားပြိုင်ပွဲများ)">
+                    <option value="UEFA Champions League">⭐ Champions League</option>
+                    <option value="UEFA Europa League">🟠 Europa League</option>
+                    <option value="UEFA Nations League">🇪🇺 Nations League</option>
+                </optgroup>
+            </select>
+
+            <!-- Search by Team Name -->
+            <input type="text" class="calendar-search-input" placeholder="🔍 အသင်းနာမည် ရှာရန် (ဥပမာ- Tottenham, Liverpool, Madrid)..." 
+                   @bind="searchQuery" @bind:event="oninput" />
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="btn-parlay-hero" style="font-size: 12px; padding: 6px 14px;" @onclick="OpenParlayModal">
+                <span>🎯 မောင်းတွဲဖောက်ရန်</span>
+            </button>
+            <button class="btn-cyber" @onclick="PredictAllMatches" disabled="@isPredictingAll">
+                @if (isPredictingAll)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>AI လေ့လာတွက်ချက်နေသည်...</span>
+                }
+                else
+                {
+                    <span>⚡ ဤရက်စွဲပွဲများ အားလုံး AI ခန့်မှန်းရန်</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================================== -->
+<!-- 🗓️ INTERACTIVE CYBER VISUAL MONTH CALENDAR MODAL                          -->
+<!-- ======================================================================== -->
+@if (isCalendarModalOpen)
+{
+    <div class="parlay-modal-overlay" @onclick="CloseCalendarModal">
+        <div class="parlay-modal-box" style="max-width: 600px;" @onclick:stopPropagation="true">
+            <!-- Modal Header with Month Navigation -->
+            <div class="parlay-modal-header" style="margin-bottom: 14px; padding-bottom: 12px;">
+                <div>
+                    <div class="parlay-modal-title">
+                        <span>🗓️ ပွဲစဉ် ပြက္ခဒိန် (MATCH CALENDAR)</span>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">
+                        ရက်စွဲများကို ကလစ်နှိပ်၍ ပွဲစဉ်များနှင့် အချိန်ဇယားများကို တိုက်ရိုက်ရွေးချယ်နိုင်ပါသည်
+                    </div>
+                </div>
+                <button class="parlay-close-btn" @onclick="CloseCalendarModal" title="ပိတ်မည်">✕</button>
+            </div>
+
+            <!-- Month Navigator -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(7,10,19,0.7); padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(0,210,255,0.2);">
+                <button type="button" class="btn-cal-jump" @onclick="() => ChangeCalendarMonth(-1)" title="ယခင်လ">
+                    ◀ ယခင်လ
+                </button>
+                <div style="font-family: var(--font-tech); font-size: 18px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <span style="color: var(--neon-cyan);">@calendarViewMonth.ToString("MMMM yyyy", new System.Globalization.CultureInfo("en-US"))</span>
+                    <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">(@GetMyanmarMonthYearName(calendarViewMonth))</span>
+                </div>
+                <button type="button" class="btn-cal-jump" @onclick="() => ChangeCalendarMonth(1)" title="နောက်လ">
+                    နောက်လ ▶
+                </button>
+            </div>
+
+            <!-- Fast Action Chips inside Calendar Modal -->
+            <div style="display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;">
+                <button type="button" class="btn-cal-jump @(isTodaySelected ? "active" : "")" @onclick="async () => { await SelectToday(); CloseCalendarModal(); }">
+                    🟢 ဒီနေ့ (Today)
+                </button>
+                <button type="button" class="btn-cal-jump @(isTomorrowSelected ? "active" : "")" @onclick="async () => { await SelectTomorrow(); CloseCalendarModal(); }">
+                    ⚡ မနက်ဖြန် (Tomorrow)
+                </button>
+                <button type="button" class="btn-cal-jump @(isAllSelected ? "active" : "")" @onclick="async () => { await SelectAllUpcoming(); CloseCalendarModal(); }">
+                    🗓️ လာမည့်ရက်အားလုံး (All)
+                </button>
+            </div>
+
+            <!-- 7-Column Day of Week Header -->
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; margin-bottom: 8px;">
+                @foreach (var dow in new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" })
+                {
+                    <div style="font-family: var(--font-tech); font-size: 11px; font-weight: 700; color: var(--neon-cyan); padding: 4px 0; background: rgba(0,210,255,0.08); border-radius: 6px;">
+                        @dow
+                    </div>
+                }
+            </div>
+
+            <!-- Calendar Days Grid -->
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
+                @foreach (var cell in GetMonthCalendarDays(calendarViewMonth))
+                {
+                    var cellDateStr = cell.Date.ToString("yyyy-MM-dd");
+                    var isSelected = (selectedDate == cellDateStr);
+
+                    <div class="calendar-grid-cell @(isSelected ? "selected" : "") @(cell.IsToday ? "today-cell" : "")"
+                         style="background: @(isSelected ? "linear-gradient(180deg, rgba(0,210,255,0.25) 0%, rgba(9,17,36,0.95) 100%)" : cell.IsCurrentMonth ? "rgba(7,10,19,0.7)" : "rgba(7,10,19,0.25)");
+                                border: 1px solid @(isSelected ? "var(--neon-cyan)" : cell.IsToday ? "var(--neon-green)" : cell.IsCurrentMonth ? "rgba(255,255,255,0.08)" : "transparent");"
+                         @onclick="async () => { await SelectDate(cellDateStr); CloseCalendarModal(); }">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 4px;">
+                            <span style="font-size: 13px; font-weight: 800; color: @(isSelected ? "var(--neon-cyan)" : cell.IsCurrentMonth ? "#fff" : "rgba(255,255,255,0.25)"); font-family: var(--font-tech);">
+                                @cell.Date.Day
+                            </span>
+                            @if (cell.IsToday)
+                            {
+                                <span style="font-size: 8px; font-weight: 800; background: rgba(0,245,155,0.2); color: var(--neon-green); border: 1px solid rgba(0,245,155,0.4); padding: 0 3px; border-radius: 3px;">
+                                    TODAY
+                                </span>
+                            }
+                            else if (cell.IsTomorrow)
+                            {
+                                <span style="font-size: 8px; font-weight: 800; background: rgba(255,183,3,0.2); color: var(--neon-gold); border: 1px solid rgba(255,183,3,0.4); padding: 0 3px; border-radius: 3px;">
+                                    TMRW
+                                </span>
+                            }
+                        </div>
+
+                        <div style="margin-top: 4px;">
+                            @if (cell.MatchCount > 0)
+                            {
+                                <span style="font-size: 10px; font-weight: 800; background: rgba(0,245,155,0.15); color: var(--neon-green); border: 1px solid rgba(0,245,155,0.3); padding: 1px 5px; border-radius: 6px; font-family: var(--font-code);">
+                                    @cell.MatchCount ပွဲ
+                                </span>
+                            }
+                            else if (cell.IsCurrentMonth)
+                            {
+                                <span style="font-size: 9px; color: var(--text-muted);">-</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Bottom Close Bar -->
+            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 12px; color: var(--text-secondary);">
+                    ရက်စွဲတစ်ခုခုကို ကလစ်နှိပ်ပါက ထိုနေ့၏ ပွဲစဉ်များကို အလိုအလျောက် ရွေးချယ်ပေးပါမည်။
+                </div>
+                <button type="button" class="btn-cal-jump" @onclick="CloseCalendarModal">
+                    ✕ ပိတ်မည် (Close)
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- ======================================================================== -->
+<!-- 🎯 1XBET MIX PARLAY (မောင်းတွဲ) MODAL DIALOG                             -->
+<!-- ======================================================================== -->
+@if (isParlayModalOpen)
+{
+    <div class="parlay-modal-overlay" @onclick="CloseParlayModal">
+        <div class="parlay-modal-box" @onclick:stopPropagation="true">
+            <!-- Modal Header -->
+            <div class="parlay-modal-header">
+                <div>
+                    <div class="parlay-modal-title">
+                        <span>🎯 1XBET AI MIX PARLAY GENERATOR</span>
+                    </div>
+                    <div style="color: var(--text-secondary); font-size: 13px; margin-top: 4px;">
+                        ရွေးချယ်ထားသော ရက်စွဲကာလအတွင်း <strong>၈၀% အသေချာဆုံး 1xBet ပေါက်ကြေးများ</strong> ဖြင့် မောင်းတွဲ ဖောက်ပေးပါသည်။
+                    </div>
+                </div>
+                <button class="parlay-close-btn" @onclick="CloseParlayModal" title="ပိတ်မည်">✕</button>
+            </div>
+
+            <!-- Visual Cyber Calendar Date Range Selector -->
+            <div style="background: rgba(7, 10, 19, 0.65); border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 12px; padding: 16px; margin-bottom: 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                    <div>
+                        <span style="font-size: 14px; font-weight: 700; color: #fff;">🗓️ မောင်းတွဲ ကာလ သတ်မှတ်ရန် (Date Range):</span>
+                        <span style="font-size: 12px; color: var(--neon-cyan); margin-left: 8px;">
+                            @(parlayCalendarTarget == "from" ? "👉 စတင်မည့်ရက် (From Date) ကို ပြက္ခဒိန်တွင် ကလစ်နှိပ်ပါ" : "👉 ပြီးဆုံးမည့်ရက် (To Date) ကို ပြက္ခဒိန်တွင် ကလစ်နှိပ်ပါ")
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" class="btn-cal-jump @(isParlayCalendarGridOpen ? "active" : "")" 
+                                style="font-size: 11px; padding: 3px 10px;" @onclick="ToggleParlayCalendarGrid">
+                            @(isParlayCalendarGridOpen ? "▲ ပြက္ခဒိန် သိမ်းမည်" : "▼ ပြက္ခဒိန် ဖွင့်မည်")
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Two Date Selection Cards (From Date & To Date) -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <!-- From Date Card -->
+                    <div class="parlay-date-card @(parlayCalendarTarget == "from" ? "active-target" : "")"
+                         @onclick='() => SetParlayCalendarTarget("from")' title="စတင်မည့်ရက် ပြောင်းရန် ကလစ်နှိပ်ပါ">
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--neon-green);"></span>
+                                <span>စတင်မည့်ရက် (From Date)</span>
+                            </div>
+                            <div style="font-size: 15px; font-weight: 800; color: #fff; margin-top: 4px; font-family: var(--font-tech);">
+                                @FormatParlayDateDisplay(parlayRequest.FromDate)
+                            </div>
+                        </div>
+                        <span style="font-size: 18px; color: var(--neon-green);">📅</span>
+                    </div>
+
+                    <!-- To Date Card -->
+                    <div class="parlay-date-card @(parlayCalendarTarget == "to" ? "active-target" : "")"
+                         @onclick='() => SetParlayCalendarTarget("to")' title="ပြီးဆုံးမည့်ရက် ပြောင်းရန် ကလစ်နှိပ်ပါ">
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--neon-gold);"></span>
+                                <span>ပြီးဆုံးမည့်ရက် (To Date)</span>
+                            </div>
+                            <div style="font-size: 15px; font-weight: 800; color: #fff; margin-top: 4px; font-family: var(--font-tech);">
+                                @FormatParlayDateDisplay(parlayRequest.ToDate)
+                            </div>
+                        </div>
+                        <span style="font-size: 18px; color: var(--neon-gold);">📅</span>
+                    </div>
+                </div>
+
+                <!-- Fast Range Presets -->
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: @(isParlayCalendarGridOpen ? "14px" : "0px");">
+                    <span style="font-size: 11px; color: var(--text-secondary); align-self: center; margin-right: 4px;">အမြန်ရွေး:</span>
+                    <button type="button" class="btn-cal-jump" style="font-size: 11px; padding: 3px 10px;" @onclick="SetParlayRangeToday">🟢 ဒီနေ့</button>
+                    <button type="button" class="btn-cal-jump" style="font-size: 11px; padding: 3px 10px;" @onclick="SetParlayRangeTomorrow">⚡ မနက်ဖြန်</button>
+                    <button type="button" class="btn-cal-jump" style="font-size: 11px; padding: 3px 10px;" @onclick="SetParlayRangeNext3Days">🗓️ လာမည့် ၃ ရက်</button>
+                    <button type="button" class="btn-cal-jump" style="font-size: 11px; padding: 3px 10px;" @onclick="SetParlayRangeNext7Days">🌟 လာမည့် ၇ ရက်</button>
+                    <button type="button" class="btn-cal-jump" style="font-size: 11px; padding: 3px 10px;" @onclick="SetParlayRangeNext14Days">🏆 လာမည့် ၂ ပတ်</button>
+                </div>
+
+                @if (isParlayCalendarGridOpen)
+                {
+                    <!-- Visual Month Calendar Grid inside Parlay Modal -->
+                    <div style="margin-top: 10px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                        <!-- Month Header -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <button type="button" class="btn-cal-jump" style="font-size: 11px; padding: 3px 8px;" @onclick="() => ChangeParlayCalendarMonth(-1)">
+                                ◀ ယခင်လ
+                            </button>
+                            <div style="font-family: var(--font-tech); font-size: 15px; font-weight: 700; color: #fff;">
+                                <span style="color: var(--neon-cyan);">@parlayCalendarMonth.ToString("MMMM yyyy", new System.Globalization.CultureInfo("en-US"))</span>
+                                <span style="font-size: 12px; color: var(--text-secondary); margin-left: 6px;">(@GetMyanmarMonthYearName(parlayCalendarMonth))</span>
+                            </div>
+                            <button type="button" class="btn-cal-jump" style="font-size: 11px; padding: 3px 8px;" @onclick="() => ChangeParlayCalendarMonth(1)">
+                                နောက်လ ▶
+                            </button>
+                        </div>
+
+                        <!-- DOW Headers -->
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; margin-bottom: 6px;">
+                            @foreach (var dow in new[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" })
+                            {
+                                <div style="font-family: var(--font-tech); font-size: 10px; font-weight: 700; color: var(--neon-cyan); padding: 3px 0; background: rgba(0,210,255,0.06); border-radius: 4px;">
+                                    @dow
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Days Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+                            @foreach (var cell in GetMonthCalendarDays(parlayCalendarMonth))
+                            {
+                                var cellDateStr = cell.Date.ToString("yyyy-MM-dd");
+                                var isFrom = (parlayRequest.FromDate == cellDateStr);
+                                var isTo = (parlayRequest.ToDate == cellDateStr);
+                                var inRange = IsDateBetween(cellDateStr, parlayRequest.FromDate, parlayRequest.ToDate);
+
+                                <div class="parlay-calendar-cell @(isFrom || isTo ? "is-endpoint" : inRange ? "in-range" : "")"
+                                     style="background: @(isFrom || isTo ? "linear-gradient(180deg, rgba(0,210,255,0.35) 0%, rgba(9,17,36,0.95) 100%)" : inRange ? "rgba(0,210,255,0.12)" : cell.IsCurrentMonth ? "rgba(7,10,19,0.7)" : "rgba(7,10,19,0.25)");
+                                            border: 1px solid @(isFrom ? "var(--neon-green)" : isTo ? "var(--neon-gold)" : inRange ? "rgba(0,210,255,0.4)" : cell.IsToday ? "var(--neon-green)" : cell.IsCurrentMonth ? "rgba(255,255,255,0.08)" : "transparent");"
+                                     @onclick="() => SelectParlayCalendarDate(cellDateStr)">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0 3px;">
+                                        <span style="font-size: 12px; font-weight: 800; color: @(isFrom || isTo ? "#fff" : cell.IsCurrentMonth ? "#fff" : "rgba(255,255,255,0.25)"); font-family: var(--font-tech);">
+                                            @cell.Date.Day
+                                        </span>
+                                        @if (isFrom)
+                                        {
+                                            <span style="font-size: 7px; font-weight: 800; background: rgba(0,245,155,0.3); color: var(--neon-green); border: 1px solid var(--neon-green); padding: 0 2px; border-radius: 2px;">FROM</span>
+                                        }
+                                        else if (isTo)
+                                        {
+                                            <span style="font-size: 7px; font-weight: 800; background: rgba(255,183,3,0.3); color: var(--neon-gold); border: 1px solid var(--neon-gold); padding: 0 2px; border-radius: 2px;">TO</span>
+                                        }
+                                        else if (cell.IsToday)
+                                        {
+                                            <span style="font-size: 7px; font-weight: 800; color: var(--neon-green);">TODAY</span>
+                                        }
+                                    </div>
+                                    <div style="margin-top: 2px;">
+                                        @if (cell.MatchCount > 0)
+                                        {
+                                            <span style="font-size: 9px; font-weight: 700; color: var(--neon-green); font-family: var(--font-code);">
+                                                @cell.MatchCount ပွဲ
+                                            </span>
+                                        }
+                                        else if (cell.IsCurrentMonth)
+                                        {
+                                            <span style="font-size: 8px; color: var(--text-muted);">-</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Total Matches Selector (Customizable: Min 4, Max 50) -->
+            <div style="background: rgba(7, 10, 19, 0.65); border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 12px; padding: 16px; margin-bottom: 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                    <div>
+                        <span style="font-size: 14px; font-weight: 700; color: #fff;">🔢 မောင်းတွဲမည့် ပွဲအရေအတွက် (Total Matches):</span>
+                        <span style="font-size: 18px; font-weight: 800; color: var(--neon-cyan); font-family: var(--font-tech); margin-left: 8px; text-shadow: 0 0 10px rgba(0,210,255,0.4);">
+                            @parlayRequest.TotalMatches ပွဲတွဲ
+                        </span>
+                    </div>
+                    <span style="font-size: 11px; color: var(--neon-gold); font-weight: 700; background: rgba(255,183,3,0.12); border: 1px solid rgba(255,183,3,0.35); padding: 3px 10px; border-radius: 6px;">
+                        ⚡ Min: 4 ပွဲ ~ Max: 50 ပွဲ (စိတ်ကြိုက်သတ်မှတ်နိုင်)
+                    </span>
+                </div>
+
+                <!-- Custom Stepper, Input Box & Range Slider -->
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(0, 0, 0, 0.4); padding: 4px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <button type="button" class="btn-cal-jump" style="width: 36px; height: 36px; padding: 0; justify-content: center; font-size: 20px; font-weight: 800;" 
+                                @onclick="() => AdjustTotalMatches(-1)" disabled="@(parlayRequest.TotalMatches <= 4)" title="၁ ပွဲ လျှော့မည်">
+                            −
+                        </button>
+                        <input type="number" class="settings-input" style="width: 70px; text-align: center; font-size: 18px; font-weight: 800; color: var(--neon-cyan); padding: 4px 6px; border: none; background: transparent;"
+                               min="4" max="50" value="@parlayRequest.TotalMatches" @onchange="OnTotalMatchesInputChanged" />
+                        <button type="button" class="btn-cal-jump" style="width: 36px; height: 36px; padding: 0; justify-content: center; font-size: 20px; font-weight: 800;" 
+                                @onclick="() => AdjustTotalMatches(1)" disabled="@(parlayRequest.TotalMatches >= 50)" title="၁ ပွဲ တိုးမည်">
+                            +
+                        </button>
+                    </div>
+
+                    <div style="flex-grow: 1; min-width: 180px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">4</span>
+                        <input type="range" min="4" max="50" step="1" 
+                               style="flex-grow: 1; accent-color: var(--neon-cyan); cursor: pointer;"
+                               value="@parlayRequest.TotalMatches" 
+                               @oninput="(ChangeEventArgs e) => { if (int.TryParse(e.Value?.ToString(), out var v)) SetTotalMatches(v); }" />
+                        <span style="font-size: 11px; color: var(--text-muted); font-weight: 700;">50</span>
+                    </div>
+                </div>
+
+                <!-- Quick Preset Chips -->
+                <div class="parlay-chip-group" style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+                    <span style="font-size: 11px; color: var(--text-secondary); align-self: center; margin-right: 4px;">အမြန်ရွေး:</span>
+                    @foreach (var count in new[] { 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50 })
+                    {
+                        <button type="button" class="parlay-chip @(parlayRequest.TotalMatches == count ? "active" : "")" 
+                                @onclick="() => SetTotalMatches(count)">
+                            @count ပွဲ
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Min Confidence Filter (Stake Amount removed as requested) -->
+            <div style="background: rgba(7, 10, 19, 0.65); border: 1px solid rgba(0, 210, 255, 0.25); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px;">
+                <label class="settings-label" style="margin-bottom: 8px;">🛡️ အနိမ့်ဆုံး ယုံကြည်မှုနှုန်း (Confidence Filter):</label>
+                <div class="parlay-chip-group">
+                    <button type="button" class="parlay-chip @(parlayRequest.MinConfidence == 80 ? "active" : "")" 
+                            @onclick="() => parlayRequest.MinConfidence = 80">
+                        🟢 80% Sure (အသေချာဆုံး)
+                    </button>
+                    <button type="button" class="parlay-chip @(parlayRequest.MinConfidence == 85 ? "active" : "")" 
+                            @onclick="() => parlayRequest.MinConfidence = 85">
+                        ⚡ 85%+ (စူပါအပိုင်)
+                    </button>
+                    <button type="button" class="parlay-chip @(parlayRequest.MinConfidence == 75 ? "active" : "")" 
+                            @onclick="() => parlayRequest.MinConfidence = 75">
+                        75%+ (ပုံမှန်)
+                    </button>
+                </div>
+            </div>
+
+            <div class="parlay-form-row">
+                <!-- Market Preference with Grouped 1xBet Options -->
+                <div style="grid-column: 1 / -1;">
+                    <label class="settings-label">📊 1xBet ကစားနည်း ဈေးကွက်ရွေးချယ်ရန် (Betting Market):</label>
+                    <select class="settings-input" @bind="parlayRequest.MarketPreference" style="border-color: rgba(0,210,255,0.5);">
+                        <option value="All">🌟 ဈေးကွက်အားလုံး (All Markets - 1X2, Over, Cards, Corners, Specials)</option>
+
+                        <optgroup label="⚽ အနည်းဆုံး တစ်သင်း ဂိုးသွင်းမှု (At Least One Team Over 1.5 / 2.5)">
+                            <option value="AtLeastOneTeamToScore">⚽ အနည်းဆုံး တစ်သင်း Over 1.5 / 2.5 (အားလုံး)</option>
+                            <option value="AtLeastOneOver15">⚽ အနည်းဆုံး တစ်သင်း Over 1.5 (Yes / No)</option>
+                            <option value="AtLeastOneOver25">⚽ အနည်းဆုံး တစ်သင်း Over 2.5 (Yes / No)</option>
+                        </optgroup>
+
+                        <optgroup label="🔥 တစ်သင်းတည်း ဆက်တိုက် ဂိုးသွင်းမှု (Goals In A Row 2 / 3)">
+                            <option value="GoalsInARow">🔥 ဆက်တိုက် ၂ / ၃ ဂိုး သွင်းမည် (အားလုံး)</option>
+                            <option value="GoalsInARow2">🔥 ဆက်တိုက် ၂ ဂိုး သွင်းမည် (2 In A Row - Yes / No)</option>
+                            <option value="GoalsInARow3">🔥 ဆက်တိုက် ၃ ဂိုး သွင်းမည် (3 In A Row - Yes / No)</option>
+                        </optgroup>
+
+                        <optgroup label="📊 အခြား 1xBet အထူးဈေးကွက်များ">
+                            <option value="BothTeamsToScore">🥅 နှစ်သင်းစလုံး ဂိုးသွင်းမည် (Both Teams To Score - BTTS / GG)</option>
+                            <option value="Corners">🚩 ဒေါင့်ကန်ဘော အပေါ် (Corners Over 8.5/9.5)</option>
+                            <option value="YellowCards">🟨 အဝါကတ်ပြား အပေါ် (Yellow Cards Over 3.5/4.5)</option>
+                            <option value="Penalty">🎯 ပင်နယ်တီ ရ/မရ (Penalty Awarded in Match - Yes / No)</option>
+                            <option value="GoalOutsidePenaltyArea">🚀 ပင်နယ်တီစည်းပြင်ပမှ သွင်းဂိုး (Goal Scored Outside Penalty Area)</option>
+                            <option value="SubstitutePlayerToScore">🔄 လူစားဝင် ကစားသမား ဂိုးသွင်းမည် (Substitute Player To Score)</option>
+                            <option value="GoalInBothHalves">⏱️ ပထမပိုင်းနှင့် ဒုတိယပိုင်း နှစ်ပိုင်းစလုံး ဂိုးရမည် (Goal In Both Halves)</option>
+                            <option value="DrawAtLeastOneHalf">🤝 အနည်းဆုံး တစ်ပိုင်း သရေကျမည် (To Draw At Least One Half)</option>
+                            <option value="1X2">🏆 1X2 & Double Chance သာ (Win / Draw)</option>
+                            <option value="OverUnder">⚽ Over/Under (ဂိုးပေါင်း အပေါ်/အောက်) သာ</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button class="btn-cyber" style="width: 100%; padding: 12px; font-size: 15px; margin-top: 6px;" 
+                    @onclick="GenerateMixParlay" disabled="@isGeneratingParlay">
+                @if (isGeneratingParlay)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>AI ဖြင့် ၈၀% အသေချာဆုံး မောင်းတွဲ တွက်ချက်နေသည်...</span>
+                }
+                else
+                {
+                    <span>🔥 ၈၀% အသေချာဆုံး မောင်းတွဲ ဖောက်မည် (Generate Parlay)</span>
+                }
+            </button>
+
+            <!-- Parlay Result Slip Display -->
+            @if (parlayResult != null)
+            {
+                <div class="parlay-slip-box">
+                    <!-- Slip Header -->
+                    <div class="parlay-slip-header">
+                        <div>
+                            <div style="font-size: 12px; color: var(--neon-cyan); font-family: var(--font-code);">
+                                🎫 1XBET PARLAY TICKET: @parlayResult.FilterInfo
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                                Generated: @parlayResult.GeneratedAt
+                            </div>
+                        </div>
+                        <div style="background: rgba(0, 245, 155, 0.15); border: 1px solid var(--neon-green); color: var(--neon-green); padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;">
+                            🛡️ @parlayResult.AverageConfidence% AVG ACCURACY
+                        </div>
+                    </div>
+
+                    <!-- Picks List -->
+                    @for (int i = 0; i < parlayResult.Picks.Count; i++)
+                    {
+                        var pick = parlayResult.Picks[i];
+                        <div class="parlay-pick-row">
+                            <!-- Tier 1: Match #, Teams & League / Kickoff Time -->
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 13px; font-weight: 800; color: var(--neon-cyan); font-family: var(--font-code); min-width: 28px;">
+                                    #@(i + 1)
+                                </span>
+                                <div>
+                                    <div class="pick-team-info">
+                                        <img src="@pick.HomeLogo" alt="" class="pick-logo-mini" onerror="this.onerror=null;this.src='favicon.png';" />
+                                        <span style="font-weight: 700; color: #fff; font-size: 14px;">@pick.HomeTeam</span>
+                                        <span style="color: var(--text-muted); font-size: 11px;">vs</span>
+                                        <span style="font-weight: 700; color: #fff; font-size: 14px;">@pick.AwayTeam</span>
+                                        <img src="@pick.AwayLogo" alt="" class="pick-logo-mini" onerror="this.onerror=null;this.src='favicon.png';" />
+                                    </div>
+                                    <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px;">
+                                        🏆 @pick.League • 🇲🇲 @ToMyanmarTime(pick.MatchTime).ToString("dd MMM, hh:mm tt") MMT
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tier 2: Selection Tag, Odds & Confidence (Uniform across all rows, exactly like #5) -->
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; padding-left: 38px;">
+                                <div class="pick-selection-tag" title="@pick.AnalysisReason">
+                                    🎯 @pick.SelectionName
+                                </div>
+                                <div class="pick-odds-badge" title="1xBet Odds">
+                                    @pick.Odds.ToString("F2")
+                                </div>
+                                <div style="font-size: 11px; color: var(--neon-green); font-weight: 700;">
+                                    @pick.ConfidencePercentage% Sure
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Combined Odds, Matches & Accuracy Calculation (Stake Amount removed) -->
+                    <div class="parlay-summary-card">
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">စုစုပေါင်း မြှောက်ကြေး (Total Odds)</div>
+                            <div class="parlay-stat-val" style="color: var(--neon-gold);">
+                                @parlayResult.TotalCombinedOdds.ToString("F2")x
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">မောင်းတွဲ ပွဲအရေအတွက် (Total Matches)</div>
+                            <div class="parlay-stat-val" style="color: var(--neon-cyan);">
+                                @parlayResult.Picks.Count ပွဲတွဲ
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 11px; color: var(--text-secondary);">ပျမ်းမျှ တိကျမှုနှုန်း (Avg Accuracy)</div>
+                            <div class="parlay-stat-val" style="color: var(--neon-green);">
+                                @parlayResult.AverageConfidence% Sure
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions Row -->
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap;">
+                        <button class="btn-cal-jump" @onclick="CopyParlaySlip" style="background: rgba(0, 210, 255, 0.2); border-color: var(--neon-cyan); color: #fff;">
+                            @if (isCopied)
+                            {
+                                <span>✅ ကူးယူပြီးပါပြီ (Copied!)</span>
+                            }
+                            else
+                            {
+                                <span>📋 မောင်းစလစ် ကူးယူမည် (Copy Slip)</span>
+                            }
+                        </button>
+                        <button class="btn-cal-jump" @onclick="GenerateMixParlay" style="background: rgba(255, 183, 3, 0.2); border-color: var(--neon-gold); color: #fff;">
+                            <span>🔄 နောက်တစ်စုံ ဖောက်မည် (Shuffle)</span>
+                        </button>
+                        <button class="btn-cal-jump" @onclick="CloseParlayModal">
+                            <span>ပိတ်မည် (Close)</span>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- ======================================================================== -->
+<!-- MATCHES CONTENT AREA                                                     -->
+<!-- ======================================================================== -->
+@if (isLoading)
+{
+    <div class="loading-pulse-box">
+        <div class="radar-ring"></div>
+        <div style="font-family: var(--font-tech); font-size: 20px; color: var(--neon-cyan);">LOADING FIXTURES &amp; LIVE ODDS...</div>
+        <div style="color: var(--text-secondary); font-size: 13px; margin-top: 6px;">Fetching official FotMob schedule, team forms, Myanmar body/ma odds, and injury reports</div>
+    </div>
+}
+else if (!filteredMatches.Any())
+{
+    <div class="game-card" style="text-align: center; padding: 40px;">
+        <div style="font-size: 40px; margin-bottom: 12px;">⚽</div>
+        <div style="font-size: 20px; font-weight: 700; color: #fff;">
+            @GetEmptyStateTitle()
+        </div>
+        <div style="color: var(--text-secondary); margin-top: 8px; font-size: 14px;">
+            ရွေးချယ်ထားသော ရက်စွဲတွင် ဤလိဂ်အတွက် ပွဲစဉ် မရှိသေးပါ သို့မဟုတ် ပွဲကစားမည့် အချိန်ဇယား မရောက်သေးပါ။
+        </div>
+
+        <!-- Quick Jump to Nearest Match Days -->
+        <div style="margin-top: 24px;">
+            <div style="font-size: 13px; color: var(--neon-cyan); margin-bottom: 10px; font-weight: 600;">
+                👉 အနီးစပ်ဆုံး ပွဲစဉ်ရှိသော ရက်စွဲများသို့ သွားရောက်ကြည့်ရှုရန်:
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                @foreach (var nearDay in calendarDays.Where(d => d.MatchCount > 0).Take(5))
+                {
+                    <button class="btn-cal-jump" @onclick="() => SelectDate(nearDay.Date)">
+                        📅 @nearDay.DisplayDate (@nearDay.DisplayDayOfWeek) - @nearDay.MatchCount ပွဲ
+                    </button>
+                }
+                <button class="btn-cal-jump" style="background: rgba(0, 210, 255, 0.2); border-color: var(--neon-cyan);" @onclick="SelectAllUpcoming">
+                    🗓️ ပွဲစဉ်အားလုံး ကြည့်ရှုရန်
+                </button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="matches-grid">
+        @foreach (var match in filteredMatches)
+        {
+            var isPredictingThis = predictingMatchIds.Contains(match.Id);
+
+            <div class="game-card game-card-cyan">
+                <!-- Match Header -->
+                <div class="match-header">
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <div class="league-badge">
+                            <span>🏆</span> @match.League
+                        </div>
+                        <span style="font-size: 11px; color: var(--neon-cyan); background: rgba(0,210,255,0.12); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(0,210,255,0.3); font-family: var(--font-code);">
+                            📡 @match.DataSource
+                        </span>
+                        @if (!string.IsNullOrEmpty(match.FotMobUrl))
+                        {
+                            <a href="@match.FotMobUrl" target="_blank" style="font-size: 11px; color: var(--neon-green); text-decoration: none;" title="View on FotMob">
+                                🔗 FotMob
+                            </a>
+                        }
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span class="match-time-chip" style="color: @GetDateBadgeColor(match.MatchTime); border-color: @GetDateBadgeBorder(match.MatchTime); font-weight: 700;">
+                            @GetDateBadgeText(match.MatchTime)
+                        </span>
+                        <div class="match-time-chip" style="background: rgba(0, 245, 160, 0.12); border-color: rgba(0, 245, 160, 0.4); color: #00f5a0; font-weight: 600;" title="မြန်မာစံတော်ချိန် (Myanmar Standard Time UTC+6:30)">
+                            🇲🇲 @GetMyanmarTimeFormatted(match.MatchTime) MMT
+                        </div>
+                        <div class="match-time-chip" style="color: rgba(255,255,255,0.65); font-size: 11px;" title="Official Kick-off Time (UTC)">
+                            🌐 @GetUtcTimeFormatted(match.MatchTime) UTC
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teams Face-Off -->
+                <div class="faceoff-row">
+                    <div class="team-col">
+                        <img src="@match.HomeLogo" alt="@match.HomeTeam" class="team-logo" onerror="this.onerror=null;this.src='favicon.png';" />
+                        <div class="team-name">@match.HomeTeam</div>
+                        <div class="form-indicators" title="Home Form (Last 5)">
+                            @foreach (var f in match.Stats.HomeRecentForm)
+                            {
+                                <span class="form-dot form-@f">@f</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="vs-col">
+                        @if (match.Status == "Live")
+                        {
+                            <div style="font-size: 11px; font-weight: 800; color: #ff3366; animation: blink 1s infinite;">🔴 LIVE</div>
+                            <div style="font-size: 22px; font-weight: 800; color: #fff;">@(match.CurrentScore ?? "0 - 0")</div>
+                        }
+                        else if (match.Status == "Finished")
+                        {
+                            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted);">🏁 FINISHED</div>
+                            <div style="font-size: 20px; font-weight: 800; color: #fff;">@(match.CurrentScore ?? "-")</div>
+                        }
+                        else
+                        {
+                            <div class="vs-badge">VS</div>
+                        }
+                        <div class="venue-tag" title="@match.Venue">@match.Venue</div>
+                    </div>
+
+                    <div class="team-col">
+                        <img src="@match.AwayLogo" alt="@match.AwayTeam" class="team-logo" onerror="this.onerror=null;this.src='favicon.png';" />
+                        <div class="team-name">@match.AwayTeam</div>
+                        <div class="form-indicators" title="Away Form (Last 5)">
+                            @foreach (var f in match.Stats.AwayRecentForm)
+                            {
+                                <span class="form-dot form-@f">@f</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Head to Head Summary -->
+                <div style="font-size: 12px; color: var(--text-secondary); background: rgba(0,0,0,0.2); padding: 6px 12px; border-radius: 6px; margin-bottom: 12px; text-align: center;">
+                    ⚔️ <strong>H2H:</strong> @match.Stats.H2HSummary
+                </div>
+
+                <!-- Odds Board: Myanmar & 1xBet -->
+                <div class="odds-box-wrapper">
+                    <!-- Myanmar Odds -->
+                    <div class="odds-card odds-card-myanmar">
+                        <div class="odds-card-header">
+                            <span>🇲🇲 မြန်မာကြေး</span>
+                            <span style="font-size: 10px; color: var(--neon-gold);">LIVE</span>
+                        </div>
+                        <div class="odds-item">
+                            <span class="odds-label">ဘော်ဒီ (Body):</span>
+                            <span class="odds-val odds-val-gold">@match.MyanmarOdds.BodyHandicap</span>
+                        </div>
+                        <div class="odds-item">
+                            <span class="odds-label">ဂိုးပေါင်း (Ma):</span>
+                            <span class="odds-val odds-val-gold">@match.MyanmarOdds.MaHandicap</span>
+                        </div>
+                        <div class="odds-item" style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                            <span>ရေကြေး: @match.MyanmarOdds.OddsTrend</span>
+                        </div>
+                    </div>
+
+                    <!-- 1xBet Odds -->
+                    <div class="odds-card odds-card-1xbet">
+                        <div class="odds-card-header">
+                            <span>🌍 1xBet ပေါက်ကြေး</span>
+                            <span style="font-size: 10px; color: var(--neon-cyan);">1X2</span>
+                        </div>
+                        <div class="odds-item">
+                            <span class="odds-label">1 - X - 2:</span>
+                            <span class="odds-val odds-val-cyan">@match.OneXBetOdds.HomeWin - @match.OneXBetOdds.Draw - @match.OneXBetOdds.AwayWin</span>
+                        </div>
+                        <div class="odds-item">
+                            <span class="odds-label">Over/Under 2.5:</span>
+                            <span class="odds-val odds-val-cyan">O @match.OneXBetOdds.Over25 / U @match.OneXBetOdds.Under25</span>
+                        </div>
+                        <div class="odds-item">
+                            <span class="odds-label">Asian Hcp:</span>
+                            <span class="odds-val">@match.OneXBetOdds.AsianHandicap</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Injuries & Team News Intel -->
+                <div class="intel-drawer">
+                    <div class="intel-title">
+                        <span>🛡️ လူစာရင်းနှင့် ဒဏ်ရာရကစားသမား အခြေအနေ (Squad &amp; Injuries)</span>
+                    </div>
+                    <ul class="intel-list">
+                        @if (match.Stats.HomeInjuries.Any())
+                        {
+                            <li><strong>@match.HomeTeam:</strong> @string.Join(", ", match.Stats.HomeInjuries)</li>
+                        }
+                        @if (match.Stats.AwayInjuries.Any())
+                        {
+                            <li><strong>@match.AwayTeam:</strong> @string.Join(", ", match.Stats.AwayInjuries)</li>
+                        }
+                        @foreach (var news in match.Stats.KeyNews.Take(2))
+                        {
+                            <li>📌 @news</li>
+                        }
+                    </ul>
+                </div>
+
+                <!-- AI Prediction Box -->
+                @if (match.AiPrediction != null)
+                {
+                    <div class="ai-pred-display">
+                        <div class="ai-pred-header">
+                            <div>
+                                <span class="ai-badge">🤖 AI PREDICTION VERDICT</span>
+                                <div style="font-size: 11px; color: var(--neon-cyan); margin-top: 4px; font-weight: 700;">
+                                    ⚡ Engine: @match.AiPrediction.EngineUsed
+                                </div>
+                            </div>
+                            <div class="confidence-gauge">
+                                <span>ယုံကြည်မှုနှုန်း:</span>
+                                <span>@match.AiPrediction.ConfidencePercentage%</span>
+                            </div>
+                        </div>
+
+                        <!-- Predicted Score -->
+                        <div class="score-prediction-hero">
+                            <span style="font-weight: 700; color: #fff;">@match.HomeTeam</span>
+                            <span class="score-num">@match.AiPrediction.PredictedHomeScore</span>
+                            <span class="score-dash">-</span>
+                            <span class="score-num">@match.AiPrediction.PredictedAwayScore</span>
+                            <span style="font-weight: 700; color: #fff;">@match.AwayTeam</span>
+                        </div>
+
+                        <!-- Recommendations Chips -->
+                        <div class="pick-chips-row">
+                            <div class="pick-chip">
+                                <div class="pick-chip-label">အကြံပြု ဘော်ဒီ (Body Tip)</div>
+                                <div class="pick-chip-value" style="color: var(--neon-green);">
+                                    🎯 @match.AiPrediction.RecommendedBodyChoice
+                                </div>
+                            </div>
+                            <div class="pick-chip">
+                                <div class="pick-chip-label">အကြံပြု ဂိုးပေါင်း (Ma Tip)</div>
+                                <div class="pick-chip-value" style="color: var(--neon-cyan);">
+                                    ⚽ @match.AiPrediction.RecommendedMaChoice
+                                </div>
+                            </div>
+                            <div class="pick-chip">
+                                <div class="pick-chip-label">1xBet Value Bet</div>
+                                <div class="pick-chip-value" style="color: var(--neon-gold);">
+                                    💎 @match.AiPrediction.RecommendedOneXBet
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Myanmar Detailed Tactical Commentary -->
+                        <div class="analysis-commentary">
+                            @match.AiPrediction.TacticalReasoningMy
+                        </div>
+
+                        <!-- Web Search Citations -->
+                        @if (match.AiPrediction.SearchSources != null && match.AiPrediction.SearchSources.Any())
+                        {
+                            <div class="sources-container">
+                                <div class="sources-header">🌐 AI ရှာဖွေစစ်ဆေးခဲ့သော သတင်းရင်းမြစ်များ (Web Intel Grounding):</div>
+                                <div>
+                                    @foreach (var src in match.AiPrediction.SearchSources)
+                                    {
+                                        <a href="@src.Url" target="_blank" class="source-link-tag" title="@src.Snippet">
+                                            🔗 @src.Domain (@src.Title.Substring(0, Math.Min(src.Title.Length, 32))...)
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        <button class="btn-cyber-outline" style="margin-top: 14px; width: 100%; font-size: 13px;" @onclick="() => PredictMatch(match.Id)">
+                            🔄 အသစ်ပြန်လည် AI စစ်ဆေးခန့်မှန်းမည် (Refresh Search)
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div style="margin-top: 16px;">
+                        <button class="btn-cyber" style="width: 100%;" @onclick="() => PredictMatch(match.Id)" disabled="@isPredictingThis">
+                            @if (isPredictingThis)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                                <span>Web သတင်းများ ရှာဖွေဆန်းစစ်နေသည်...</span>
+                            }
+                            else
+                            {
+                                <span>⚡ AI ဖြင့် Web Search ပြုလုပ်ပြီး ခန့်မှန်းမည်</span>
+                            }
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<FootballMatchDto>? matches;
+    private List<FootballCalendarDayDto> calendarDays = [];
+    private string selectedDate = "";
+    private string currentSelectedDateStr = "";
+    private string selectedLeague = "All";
+    private string searchQuery = "";
+    private bool isLoading = true;
+    private bool isPredictingAll = false;
+    private readonly HashSet<string> predictingMatchIds = new();
+
+    // 🎯 1xBet Mix Parlay State
+    private bool isParlayModalOpen = false;
+    private FootballParlayRequestDto parlayRequest = new();
+    private FootballParlayResponseDto? parlayResult;
+    private bool isGeneratingParlay = false;
+    private bool isCopied = false;
+
+    // 🗓️ Interactive Cyber Visual Month Calendar State
+    private bool isCalendarModalOpen = false;
+    private bool isMonthGridInline = false;
+    private DateTime calendarViewMonth = DateTime.UtcNow.AddHours(6.5);
+
+    public class CalendarGridDay
+    {
+        public DateTime Date { get; set; }
+        public bool IsCurrentMonth { get; set; }
+        public bool IsToday { get; set; }
+        public bool IsTomorrow { get; set; }
+        public int MatchCount { get; set; }
+    }
+
+    private bool isTodaySelected => selectedDate == DateTime.UtcNow.AddHours(6.5).ToString("yyyy-MM-dd");
+    private bool isTomorrowSelected => selectedDate == DateTime.UtcNow.AddHours(6.5).AddDays(1).ToString("yyyy-MM-dd");
+    private bool isAllSelected => selectedDate == "all";
+
+    private IEnumerable<FootballMatchDto> filteredMatches
+    {
+        get
+        {
+            if (matches == null) return Enumerable.Empty<FootballMatchDto>();
+            var result = matches.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(selectedLeague) && !selectedLeague.Equals("All", StringComparison.OrdinalIgnoreCase))
+            {
+                if (selectedLeague.StartsWith("Country:", StringComparison.OrdinalIgnoreCase))
+                {
+                    var country = selectedLeague.Substring("Country:".Length);
+                    result = country switch
+                    {
+                        "England" => result.Where(m => m.League.Contains("English", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Premier League", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Championship", StringComparison.OrdinalIgnoreCase)),
+                        "Spain" => result.Where(m => m.League.Contains("Spanish", StringComparison.OrdinalIgnoreCase) || m.League.Contains("La Liga", StringComparison.OrdinalIgnoreCase)),
+                        "Germany" => result.Where(m => m.League.Contains("German", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Bundesliga", StringComparison.OrdinalIgnoreCase)),
+                        "Italy" => result.Where(m => m.League.Contains("Italian", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Serie A", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Serie B", StringComparison.OrdinalIgnoreCase)),
+                        "France" => result.Where(m => m.League.Contains("French", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Ligue", StringComparison.OrdinalIgnoreCase)),
+                        "Portugal" => result.Where(m => m.League.Contains("Portuguese", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Portugal", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Primeira Liga", StringComparison.OrdinalIgnoreCase)),
+                        "Netherlands" => result.Where(m => m.League.Contains("Dutch", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Eredivisie", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Netherlands", StringComparison.OrdinalIgnoreCase)),
+                        "USA" => result.Where(m => m.League.Contains("USA", StringComparison.OrdinalIgnoreCase) || m.League.Contains("MLS", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Major League Soccer", StringComparison.OrdinalIgnoreCase)),
+                        "Turkey" => result.Where(m => m.League.Contains("Turkish", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Turkey", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Süper Lig", StringComparison.OrdinalIgnoreCase) || m.League.Contains("Super Lig", StringComparison.OrdinalIgnoreCase)),
+                        _ => result
+                    };
+                }
+                else if (selectedLeague.Contains("Nations League", StringComparison.OrdinalIgnoreCase))
+                {
+                    result = result.Where(m => m.League.Contains("Nations League", StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    result = result.Where(m => m.League.Equals(selectedLeague, StringComparison.OrdinalIgnoreCase) || m.League.Contains(selectedLeague, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                result = result.Where(m =>
+                    m.HomeTeam.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    m.AwayTeam.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                    m.League.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return result;
+        }
+    }
+
+    private async Task OnLeagueDropdownChanged(ChangeEventArgs e)
+    {
+        selectedLeague = e.Value?.ToString() ?? "All";
+        await LoadMatches();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var myanmarToday = DateTime.UtcNow.AddHours(6.5).ToString("yyyy-MM-dd");
+        selectedDate = myanmarToday;
+        currentSelectedDateStr = myanmarToday;
+
+        await LoadCalendarDays();
+        await LoadMatches();
+    }
+
+    private async Task LoadCalendarDays()
+    {
+        try
+        {
+            calendarDays = await ApiClient.GetCalendarDaysAsync(21);
+        }
+        catch { }
+    }
+
+    private async Task LoadMatches(bool refresh = false)
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            matches = await ApiClient.GetMatchesAsync(selectedDate, selectedLeague, refresh);
+        }
+        catch
+        {
+            matches = [];
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SelectDate(string dateStr)
+    {
+        selectedDate = dateStr;
+        currentSelectedDateStr = dateStr;
+        await LoadMatches();
+    }
+
+    private async Task SelectToday()
+    {
+        var todayStr = DateTime.UtcNow.AddHours(6.5).ToString("yyyy-MM-dd");
+        selectedDate = todayStr;
+        currentSelectedDateStr = todayStr;
+        await LoadMatches();
+    }
+
+    private async Task SelectTomorrow()
+    {
+        var tomorrowStr = DateTime.UtcNow.AddHours(6.5).AddDays(1).ToString("yyyy-MM-dd");
+        selectedDate = tomorrowStr;
+        currentSelectedDateStr = tomorrowStr;
+        await LoadMatches();
+    }
+
+    private async Task SelectAllUpcoming()
+    {
+        selectedDate = "all";
+        currentSelectedDateStr = "";
+        await LoadMatches();
+    }
+
+    private async Task OnDatePickerChanged(ChangeEventArgs e)
+    {
+        var pickedDate = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(pickedDate))
+        {
+            selectedDate = pickedDate;
+            currentSelectedDateStr = pickedDate;
+            await LoadMatches();
+        }
+    }
+
+    private async Task NavigateDay(int offset)
+    {
+        DateTime baseDate;
+        if (DateTime.TryParse(selectedDate, out var parsed))
+        {
+            baseDate = parsed;
+        }
+        else
+        {
+            baseDate = DateTime.UtcNow.AddHours(6.5);
+        }
+
+        var newDate = baseDate.AddDays(offset);
+        var newDateStr = newDate.ToString("yyyy-MM-dd");
+        selectedDate = newDateStr;
+        currentSelectedDateStr = newDateStr;
+        await LoadMatches();
+    }
+
+    private async Task ForceRefreshMatches()
+    {
+        await LoadMatches(refresh: true);
+        await LoadCalendarDays();
+    }
+
+    // ========================================================================
+    // 🎯 1XBET MIX PARLAY (မောင်းတွဲ) HANDLERS
+    // ========================================================================
+    private bool isParlayCalendarGridOpen = true;
+    private string parlayCalendarTarget = "from";
+    private DateTime parlayCalendarMonth = DateTime.UtcNow.AddHours(6.5);
+
+    private void OpenParlayModal()
+    {
+        var myanmarNow = DateTime.UtcNow.AddHours(6.5);
+        parlayRequest = new FootballParlayRequestDto
+        {
+            FromDate = DateTime.TryParse(selectedDate, out _) && selectedDate != "all" ? selectedDate : myanmarNow.ToString("yyyy-MM-dd"),
+            ToDate = DateTime.TryParse(selectedDate, out var dt) && selectedDate != "all" ? dt.AddDays(1).ToString("yyyy-MM-dd") : myanmarNow.AddDays(1).ToString("yyyy-MM-dd"),
+            TotalMatches = 4,
+            MinConfidence = 80,
+            MarketPreference = "All",
+            StakeAmount = 10000
+        };
+        parlayCalendarTarget = "from";
+        parlayCalendarMonth = DateTime.TryParse(parlayRequest.FromDate, out var fDt) ? fDt : myanmarNow;
+        isParlayCalendarGridOpen = true;
+        isParlayModalOpen = true;
+        isCopied = false;
+    }
+
+    private void ToggleParlayCalendarGrid()
+    {
+        isParlayCalendarGridOpen = !isParlayCalendarGridOpen;
+    }
+
+    private void SetParlayCalendarTarget(string target)
+    {
+        parlayCalendarTarget = target;
+        isParlayCalendarGridOpen = true;
+    }
+
+    private void ChangeParlayCalendarMonth(int delta)
+    {
+        parlayCalendarMonth = parlayCalendarMonth.AddMonths(delta);
+    }
+
+    private void SelectParlayCalendarDate(string dateStr)
+    {
+        if (parlayCalendarTarget == "from")
+        {
+            parlayRequest.FromDate = dateStr;
+            if (DateTime.TryParse(parlayRequest.ToDate, out var toDt) && DateTime.Parse(dateStr) > toDt)
+            {
+                parlayRequest.ToDate = dateStr;
+            }
+            parlayCalendarTarget = "to";
+        }
+        else
+        {
+            parlayRequest.ToDate = dateStr;
+            if (DateTime.TryParse(parlayRequest.FromDate, out var fromDt) && DateTime.Parse(dateStr) < fromDt)
+            {
+                parlayRequest.FromDate = dateStr;
+            }
+        }
+    }
+
+    private bool IsDateBetween(string dateStr, string startStr, string endStr)
+    {
+        if (DateTime.TryParse(dateStr, out var d) && 
+            DateTime.TryParse(startStr, out var s) && 
+            DateTime.TryParse(endStr, out var e))
+        {
+            return d >= s && d <= e;
+        }
+        return false;
+    }
+
+    private string FormatParlayDateDisplay(string dateStr)
+    {
+        if (DateTime.TryParse(dateStr, out var dt))
+        {
+            var dow = dt.DayOfWeek switch
+            {
+                DayOfWeek.Monday => "တနင်္လာ",
+                DayOfWeek.Tuesday => "အင်္ဂါ",
+                DayOfWeek.Wednesday => "ဗုဒ္ဓဟူး",
+                DayOfWeek.Thursday => "ကြာသပတေး",
+                DayOfWeek.Friday => "သောကြာ",
+                DayOfWeek.Saturday => "စနေ",
+                DayOfWeek.Sunday => "တနင်္ဂနွေ",
+                _ => ""
+            };
+            var mName = dt.ToString("MMM", new System.Globalization.CultureInfo("en-US"));
+            return $"{dt.Day} {mName} {dt.Year} ({dow})";
+        }
+        return dateStr;
+    }
+
+    private void AdjustTotalMatches(int delta)
+    {
+        parlayRequest.TotalMatches = Math.Clamp(parlayRequest.TotalMatches + delta, 4, 50);
+    }
+
+    private void SetTotalMatches(int count)
+    {
+        parlayRequest.TotalMatches = Math.Clamp(count, 4, 50);
+    }
+
+    private void OnTotalMatchesInputChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var count))
+        {
+            parlayRequest.TotalMatches = Math.Clamp(count, 4, 50);
+        }
+        else
+        {
+            parlayRequest.TotalMatches = 4;
+        }
+    }
+
+    private void CloseParlayModal()
+    {
+        isParlayModalOpen = false;
+    }
+
+    // 🗓️ Visual Calendar Methods
+    private void OpenCalendarModal()
+    {
+        calendarViewMonth = DateTime.TryParse(selectedDate, out var dt) && selectedDate != "all" 
+            ? dt 
+            : DateTime.UtcNow.AddHours(6.5);
+        isCalendarModalOpen = true;
+    }
+
+    private void CloseCalendarModal()
+    {
+        isCalendarModalOpen = false;
+    }
+
+    private void ToggleInlineCalendar()
+    {
+        isMonthGridInline = !isMonthGridInline;
+    }
+
+    private void ChangeCalendarMonth(int deltaMonths)
+    {
+        calendarViewMonth = calendarViewMonth.AddMonths(deltaMonths);
+    }
+
+    private List<CalendarGridDay> GetMonthCalendarDays(DateTime monthDate)
+    {
+        var result = new List<CalendarGridDay>();
+        var firstDayOfMonth = new DateTime(monthDate.Year, monthDate.Month, 1);
+        var myanmarNow = DateTime.UtcNow.AddHours(6.5).Date;
+
+        int dayOfWeek = (int)firstDayOfMonth.DayOfWeek;
+        int offset = dayOfWeek == 0 ? 6 : dayOfWeek - 1;
+        var startGridDate = firstDayOfMonth.AddDays(-offset);
+
+        for (int i = 0; i < 35; i++)
+        {
+            var cellDate = startGridDate.AddDays(i);
+            var dateStr = cellDate.ToString("yyyy-MM-dd");
+            var dayDto = calendarDays.FirstOrDefault(d => d.Date == dateStr);
+
+            result.Add(new CalendarGridDay
+            {
+                Date = cellDate,
+                IsCurrentMonth = (cellDate.Month == monthDate.Month),
+                IsToday = (cellDate.Date == myanmarNow),
+                IsTomorrow = (cellDate.Date == myanmarNow.AddDays(1)),
+                MatchCount = dayDto?.MatchCount ?? 0
+            });
+        }
+
+        return result;
+    }
+
+    private string GetMyanmarMonthYearName(DateTime date)
+    {
+        var myMonths = new[] { "", "ဇန်နဝါရီ", "ဖေဖော်ဝါရီ", "မတ်", "ဧပြီ", "မေ", "ဇွန်", "ဇူလိုင်", "ဩဂုတ်", "စက်တင်ဘာ", "အောက်တိုဘာ", "နိုဝင်ဘာ", "ဒီဇင်ဘာ" };
+        var mName = (date.Month >= 1 && date.Month <= 12) ? myMonths[date.Month] : "";
+        return $"{mName} {date.Year}";
+    }
+
+    private void SetParlayRangeToday()
+    {
+        var now = DateTime.UtcNow.AddHours(6.5);
+        var today = now.ToString("yyyy-MM-dd");
+        parlayRequest.FromDate = today;
+        parlayRequest.ToDate = today;
+        parlayCalendarMonth = now;
+        parlayCalendarTarget = "from";
+    }
+
+    private void SetParlayRangeTomorrow()
+    {
+        var now = DateTime.UtcNow.AddHours(6.5).AddDays(1);
+        var tomorrow = now.ToString("yyyy-MM-dd");
+        parlayRequest.FromDate = tomorrow;
+        parlayRequest.ToDate = tomorrow;
+        parlayCalendarMonth = now;
+        parlayCalendarTarget = "from";
+    }
+
+    private void SetParlayRangeNext3Days()
+    {
+        var now = DateTime.UtcNow.AddHours(6.5);
+        parlayRequest.FromDate = now.ToString("yyyy-MM-dd");
+        parlayRequest.ToDate = now.AddDays(2).ToString("yyyy-MM-dd");
+        parlayCalendarMonth = now;
+        parlayCalendarTarget = "from";
+    }
+
+    private void SetParlayRangeNext7Days()
+    {
+        var now = DateTime.UtcNow.AddHours(6.5);
+        parlayRequest.FromDate = now.ToString("yyyy-MM-dd");
+        parlayRequest.ToDate = now.AddDays(6).ToString("yyyy-MM-dd");
+        parlayCalendarMonth = now;
+        parlayCalendarTarget = "from";
+    }
+
+    private void SetParlayRangeNext14Days()
+    {
+        var now = DateTime.UtcNow.AddHours(6.5);
+        parlayRequest.FromDate = now.ToString("yyyy-MM-dd");
+        parlayRequest.ToDate = now.AddDays(13).ToString("yyyy-MM-dd");
+        parlayCalendarMonth = now;
+        parlayCalendarTarget = "from";
+    }
+
+    private async Task GenerateMixParlay()
+    {
+        parlayRequest.TotalMatches = Math.Clamp(parlayRequest.TotalMatches, 4, 50);
+        isGeneratingParlay = true;
+        isCopied = false;
+        StateHasChanged();
+
+        try
+        {
+            parlayResult = await ApiClient.GenerateMixParlayAsync(parlayRequest);
+        }
+        catch { }
+        finally
+        {
+            isGeneratingParlay = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CopyParlaySlip()
+    {
+        if (parlayResult == null || !parlayResult.Picks.Any()) return;
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("🔥 CYBER PREDICT - 1XBET MIX PARLAY SLIP (မောင်းလက်မှတ်)");
+        sb.AppendLine($"📅 {parlayResult.FilterInfo}");
+        sb.AppendLine($"📊 ပျမ်းမျှ အနိုင်ယုံကြည်မှုနှုန်း: {parlayResult.AverageConfidence}% Sure");
+        sb.AppendLine("--------------------------------------------------");
+
+        for (int i = 0; i < parlayResult.Picks.Count; i++)
+        {
+            var p = parlayResult.Picks[i];
+            sb.AppendLine($"{i + 1}. {p.HomeTeam} vs {p.AwayTeam} ({p.League})");
+            sb.AppendLine($"   👉 1xBet Pick: {p.SelectionName} @ {p.Odds:F2}");
+            sb.AppendLine($"   ⏱️ {ToMyanmarTime(p.MatchTime):dd MMM, hh:mm tt} MMT • {p.ConfidencePercentage}% Sure");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("--------------------------------------------------");
+        sb.AppendLine($"💎 စုစုပေါင်း မြှောက်ကြေး (Total Odds): {parlayResult.TotalCombinedOdds:F2}x");
+        sb.AppendLine($"🛡️ ပျမ်းမျှ တိကျမှုနှုန်း (Avg Confidence): {parlayResult.AverageConfidence}% Sure");
+        sb.AppendLine($"🔢 မောင်းတွဲ ပွဲအရေအတွက် (Total Matches): {parlayResult.Picks.Count} ပွဲတွဲ");
+        sb.AppendLine($"⚡ Powered by Google Gemini AI & FotMob Live Data");
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", sb.ToString());
+            isCopied = true;
+            StateHasChanged();
+            _ = Task.Delay(2500).ContinueWith(_ => { isCopied = false; InvokeAsync(StateHasChanged); });
+        }
+        catch { }
+    }
+
+    private string GetSelectedDateBadgeTitle()
+    {
+        if (isTodaySelected) return "TODAY FIXTURES";
+        if (isTomorrowSelected) return "TOMORROW FIXTURES";
+        if (isAllSelected) return "ALL UPCOMING FIXTURES";
+        return $"{currentSelectedDateStr} FIXTURES";
+    }
+
+    private string GetDateStatusText()
+    {
+        if (isTodaySelected) return "TODAY MATCHES";
+        if (isTomorrowSelected) return "TOMORROW MATCHES";
+        if (isAllSelected) return "ALL UPCOMING";
+        return currentSelectedDateStr;
+    }
+
+    private string GetActiveDateLongMyanmarString()
+    {
+        if (isAllSelected) return "လာမည့် ပွဲစဉ်အားလုံး (All Fixtures)";
+
+        if (DateTime.TryParse(selectedDate, out var dt))
+        {
+            var myanmarYear = dt.Year;
+            var dayOfWeekMyanmar = dt.DayOfWeek switch
+            {
+                DayOfWeek.Monday => "တနင်္လာနေ့",
+                DayOfWeek.Tuesday => "အင်္ဂါနေ့",
+                DayOfWeek.Wednesday => "ဗုဒ္ဓဟူးနေ့",
+                DayOfWeek.Thursday => "ကြာသပတေးနေ့",
+                DayOfWeek.Friday => "သောကြာနေ့",
+                DayOfWeek.Saturday => "စနေနေ့",
+                DayOfWeek.Sunday => "တနင်္ဂနွေနေ့",
+                _ => ""
+            };
+            var monthMyanmar = dt.Month switch
+            {
+                1 => "ဇန်နဝါရီ",
+                2 => "ဖေဖော်ဝါရီ",
+                3 => "မတ်",
+                4 => "ဧပြီ",
+                5 => "မေ",
+                6 => "ဇွန်",
+                7 => "ဇူလိုင်",
+                8 => "ဩဂုတ်",
+                9 => "စက်တင်ဘာ",
+                10 => "အောက်တိုဘာ",
+                11 => "နိုဝင်ဘာ",
+                12 => "ဒီဇင်ဘာ",
+                _ => ""
+            };
+            return $"{myanmarYear} {monthMyanmar} {dt.Day} ရက် ({dayOfWeekMyanmar})";
+        }
+        return selectedDate;
+    }
+
+    private string GetEmptyStateTitle()
+    {
+        if (isTodaySelected) return "ဒီနေ့အတွက် ဤလိဂ်တွင် ပွဲစဉ်မရှိသေးပါ";
+        if (isTomorrowSelected) return "မနက်ဖြန်အတွက် ဤလိဂ်တွင် ပွဲစဉ်မရှိသေးပါ";
+        return $"{currentSelectedDateStr} အတွက် ပွဲစဉ်မတွေ့ရှိသေးပါ";
+    }
+
+    private DateTime ToMyanmarTime(DateTime matchTime)
+    {
+        var utc = matchTime.Kind == DateTimeKind.Utc ? matchTime : matchTime.ToUniversalTime();
+        return utc.AddHours(6.5);
+    }
+
+    private string GetMyanmarTimeFormatted(DateTime matchTime)
+    {
+        var mmt = ToMyanmarTime(matchTime);
+        return mmt.ToString("dd MMM, hh:mm tt");
+    }
+
+    private string GetUtcTimeFormatted(DateTime matchTime)
+    {
+        var utc = matchTime.Kind == DateTimeKind.Utc ? matchTime : matchTime.ToUniversalTime();
+        return utc.ToString("HH:mm");
+    }
+
+    private string GetDateBadgeText(DateTime matchTime)
+    {
+        var mmtDate = ToMyanmarTime(matchTime).Date;
+        var myanmarToday = DateTime.UtcNow.AddHours(6.5).Date;
+        if (mmtDate == myanmarToday) return "🟢 ဒီနေ့ (Today)";
+        if (mmtDate == myanmarToday.AddDays(1)) return "⚡ မနက်ဖြန် (Tomorrow)";
+        if (mmtDate == myanmarToday.AddDays(-1)) return "🏁 မနေ့က (Yesterday)";
+        return $"🗓️ {mmtDate:dd MMM}";
+    }
+
+    private string GetDateBadgeColor(DateTime matchTime)
+    {
+        var mmtDate = ToMyanmarTime(matchTime).Date;
+        var myanmarToday = DateTime.UtcNow.AddHours(6.5).Date;
+        if (mmtDate == myanmarToday) return "var(--neon-green)";
+        if (mmtDate == myanmarToday.AddDays(1)) return "var(--neon-gold)";
+        return "var(--neon-cyan)";
+    }
+
+    private string GetDateBadgeBorder(DateTime matchTime)
+    {
+        var mmtDate = ToMyanmarTime(matchTime).Date;
+        var myanmarToday = DateTime.UtcNow.AddHours(6.5).Date;
+        if (mmtDate == myanmarToday) return "rgba(0, 245, 160, 0.4)";
+        if (mmtDate == myanmarToday.AddDays(1)) return "rgba(255, 183, 3, 0.4)";
+        return "rgba(0, 210, 255, 0.3)";
+    }
+
+    private async Task PredictMatch(string matchId)
+    {
+        predictingMatchIds.Add(matchId);
+        StateHasChanged();
+
+        var prediction = await ApiClient.RunAiMatchPredictionAsync(matchId);
+        if (prediction != null && matches != null)
+        {
+            var m = matches.FirstOrDefault(x => x.Id == matchId);
+            if (m != null)
+            {
+                m.AiPrediction = prediction;
+            }
+        }
+
+        predictingMatchIds.Remove(matchId);
+        StateHasChanged();
+    }
+
+    private async Task PredictAllMatches()
+    {
+        if (matches == null || !matches.Any()) return;
+        isPredictingAll = true;
+
+        foreach (var match in filteredMatches)
+        {
+            if (match.AiPrediction == null)
+            {
+                predictingMatchIds.Add(match.Id);
+                StateHasChanged();
+                var pred = await ApiClient.RunAiMatchPredictionAsync(match.Id);
+                if (pred != null) match.AiPrediction = pred;
+                predictingMatchIds.Remove(match.Id);
+                StateHasChanged();
+            }
+        }
+
+        isPredictingAll = false;
+    }
+}

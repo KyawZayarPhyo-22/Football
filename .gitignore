@@ -1,0 +1,24 @@
+# Build & Output Folders
+**/bin/
+**/obj/
+**/test_publish/
+**/publish/
+
+# Visual Studio & VS Code
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Temporary & Log files
+*.log
+scratch/
+.tempmediaStorage/
+
+# OS generated files
+.DS_Store
+Thumbs.db

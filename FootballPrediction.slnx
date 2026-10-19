@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FootballPrediction.Api/FootballPrediction.Api.csproj" />
+    <Project Path="src/FootballPrediction.Client/FootballPrediction.Client.csproj" />
+    <Project Path="src/FootballPrediction.Shared/FootballPrediction.Shared.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,203 @@
+@page "/ai-arena"
+@inject PredictionApiClient ApiClient
+
+<PageTitle>AI Web Search & Intelligence Arena | CYBER PREDICT</PageTitle>
+
+<!-- Hero Section -->
+<div class="hero-hud">
+    <div class="hero-title">
+        <span>🤖 AI Web Search &amp; Prediction Arena</span>
+        <span class="badge-odds" style="font-size: 13px; background: rgba(0,210,255,0.15); color: var(--neon-cyan); border: 1px solid var(--neon-cyan); padding: 4px 10px; border-radius: 6px;">
+            NEURAL SEARCH GROUNDING
+        </span>
+    </div>
+    <p class="hero-desc">
+        မည်သည့် ဘောပွဲစဉ် သို့မဟုတ် ၂လုံး/၃လုံး ထီ မေးခွန်းကိုမဆို ရိုက်ထည့်၍ AI အား တိုက်ရိုက် အင်တာနက်ရှာဖွေခိုင်းပါ။ AI သည် သက်ဆိုင်ရာ ဝက်ဘ်ဆိုက်များတွင် ကစားသမားဒဏ်ရာ၊ သတင်းများ၊ ထိပ်တိုက်တွေ့ဆုံမှုနှင့် မြန်မာကြေး/1xBet ကြေးများကို ဦးစွာ စစ်ဆေးပြီးမှ ဘက်မလိုက်ဘဲ တိကျစွာ ခွဲခြမ်းစိတ်ဖြာ ပေးပါသည်။
+    </p>
+</div>
+
+<!-- Search Console Box -->
+<div class="search-console-box">
+    <div style="font-size: 13px; font-weight: 700; color: var(--neon-cyan); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+        <span>🔍 AI WEB SEARCH PROMPT CONSOLE</span>
+    </div>
+
+    <div class="search-input-group">
+        <input type="text" class="search-input" placeholder="ဥပမာ - Arsenal vs Chelsea မြန်မာကြေး၊ ဒဏ်ရာရကစားသမားများနှင့် သုံးသပ်ချက်..." @bind="searchQuery" @bind:event="oninput" @onkeydown="HandleKeyDown" />
+        <button class="btn-cyber btn-cyber-cyan" @onclick="ExecuteSearch" disabled="@(isSearching || string.IsNullOrWhiteSpace(searchQuery))">
+            @if (isSearching)
+            {
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+                <span>Web ရှာဖွေဆန်းစစ်နေသည်...</span>
+            }
+            else
+            {
+                <span>⚡ AI စစ်ဆေးခန့်မှန်းမည်</span>
+            }
+        </button>
+    </div>
+
+    <!-- Category selector -->
+    <div class="category-pills">
+        <span class="cat-pill @(category == "Football" ? "active" : "")" @onclick='() => category = "Football"'>
+            ⚽ Football (ဘောပွဲ)
+        </span>
+        <span class="cat-pill @(category == "2D" ? "active" : "")" @onclick='() => category = "2D"'>
+            🎲 2D (ထိုင်းစတော့ ၂လုံး)
+        </span>
+        <span class="cat-pill @(category == "3D" ? "active" : "")" @onclick='() => category = "3D"'>
+            🎯 3D (ထိုင်းအစိုးရ ၃လုံးထီ)
+        </span>
+    </div>
+
+    <!-- Quick prompt shortcuts -->
+    <div style="margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">နမူနာ မေးခွန်းများ:</span>
+        <button class="source-link-tag" style="cursor: pointer;" @onclick='() => SetPrompt("Arsenal vs Man City match prediction with injuries, Myanmar odds and 1xbet lines", "Football")'>
+            📌 Arsenal vs Man City ခန့်မှန်းချက်
+        </button>
+        <button class="source-link-tag" style="cursor: pointer;" @onclick='() => SetPrompt("Real Madrid vs Barcelona El Clasico injury updates and Myanmar body odds", "Football")'>
+            📌 El Clasico ဒဏ်ရာရစာရင်းနှင့် ကြေးပေါက်
+        </button>
+        <button class="source-link-tag" style="cursor: pointer;" @onclick='() => SetPrompt("Thai SET 2D morning session predictions based on previous months history", "2D")'>
+            📌 2D မနက်ပိုင်း ထွက်နိုင်ခြေ သုံးသပ်ချက်
+        </button>
+        <button class="source-link-tag" style="cursor: pointer;" @onclick='() => SetPrompt("Thai government lottery 3D next draw hot numbers and permutations", "3D")'>
+            📌 3D ထိုင်းထီ အကြိုက်ဆုံး ထွက်ဂဏန်းများ
+        </button>
+    </div>
+</div>
+
+@if (isSearching)
+{
+    <div class="loading-pulse-box game-card">
+        <div class="radar-ring"></div>
+        <div style="font-family: var(--font-tech); font-size: 22px; color: var(--neon-cyan);">
+            CONNECTING TO REAL-TIME WEB SEARCH &amp; ANALYZING SATELLITE INTEL...
+        </div>
+        <div style="color: var(--text-secondary); font-size: 13px; margin-top: 8px; max-width: 600px;">
+            AI is crawling online sports outlets, lottery databases, official SET index tables, and Myanmar handicap markets for query:
+            <span style="color: #fff; font-weight: 700;">"@searchQuery"</span>
+        </div>
+    </div>
+}
+else if (searchResponse != null)
+{
+    <!-- AI Result Box -->
+    <div class="game-card game-card-cyan">
+        <div class="section-header">
+            <div>
+                <div style="font-size: 11px; color: var(--neon-cyan); text-transform: uppercase; font-family: var(--font-tech); letter-spacing: 1px;">
+                    AI VERIFIED REPORT &bull; @searchResponse.Timestamp.ToString("yyyy-MM-dd HH:mm:ss") UTC
+                </div>
+                <h3 class="section-title" style="margin-top: 4px;">
+                    Query: "@searchResponse.Query"
+                </h3>
+            </div>
+            <div class="confidence-gauge">
+                <span>AI Confidence:</span>
+                <span>@searchResponse.CalculatedConfidence%</span>
+            </div>
+        </div>
+
+        <!-- Web Citations Section -->
+        @if (searchResponse.SearchedSources.Any())
+        {
+            <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 14px; margin-bottom: 20px; border: 1px solid rgba(0,210,255,0.2);">
+                <div style="font-size: 12px; font-weight: 700; color: var(--neon-cyan); text-transform: uppercase; margin-bottom: 8px;">
+                    🌐 Web Intel Grounding (AI အသုံးပြုခဲ့သော သတင်းရင်းမြစ်များ):
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">
+                    @foreach (var s in searchResponse.SearchedSources)
+                    {
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px;">
+                            <div style="font-weight: 700; font-size: 12px; color: #fff;">
+                                <a href="@s.Url" target="_blank" style="color: var(--neon-cyan); text-decoration: none;">@s.Title</a>
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin: 3px 0;">Domain: @s.Domain</div>
+                            <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">@s.Snippet</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Markdown Output Rendered -->
+        <div class="analysis-commentary" style="font-size: 14px; line-height: 1.7; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px;">
+            @((MarkupString)FormatMarkdownToHtml(searchResponse.FormattedMarkdownReport))
+        </div>
+    </div>
+}
+
+@code {
+    private string searchQuery = "Arsenal vs Manchester City today match prediction with injury news, Myanmar body odds and 1xBet line";
+    private string category = "Football";
+    private bool isSearching = false;
+    private CustomAiSearchResponse? searchResponse;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Execute initial showcase analysis
+        await ExecuteSearch();
+    }
+
+    private void SetPrompt(string prompt, string cat)
+    {
+        searchQuery = prompt;
+        category = cat;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ExecuteSearch();
+        }
+    }
+
+    private async Task ExecuteSearch()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery)) return;
+        isSearching = true;
+        searchResponse = null;
+
+        searchResponse = await ApiClient.AnalyzeCustomQueryAsync(new CustomAiSearchRequest
+        {
+            Query = searchQuery,
+            Category = category
+        });
+
+        isSearching = false;
+    }
+
+    private static string FormatMarkdownToHtml(string markdown)
+    {
+        if (string.IsNullOrWhiteSpace(markdown)) return string.Empty;
+
+        // Basic clean formatting for headers, bold, bullets and line breaks
+        var html = System.Net.WebUtility.HtmlEncode(markdown);
+
+        // Headers
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"^### (.*)$", "<h4 style='color: var(--neon-cyan); margin-top: 16px; margin-bottom: 8px;'>$1</h4>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"^## (.*)$", "<h3 style='color: #fff; margin-top: 20px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px;'>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"^# (.*)$", "<h2 style='color: var(--neon-green); margin-top: 0; margin-bottom: 12px;'>$1</h2>", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Bold
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"\*\*(.*?)\*\*", "<strong style='color: #fff;'>$1</strong>");
+
+        // Code tags
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"`(.*?)`", "<code style='background: rgba(0,0,0,0.4); color: var(--neon-cyan); padding: 2px 6px; border-radius: 4px; font-family: var(--font-code);'>$1</code>");
+
+        // Links [text](url)
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"\[(.*?)\]\((.*?)\)", "<a href='$2' target='_blank' style='color: var(--neon-cyan); text-decoration: underline;'>$1</a>");
+
+        // Bullet points
+        html = System.Text.RegularExpressions.Regex.Replace(html, @"^- (.*)$", "<li style='margin-bottom: 6px;'>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+        // Tables simple pass
+        html = html.Replace("\n", "<br />");
+        html = html.Replace("<br /><li", "<li");
+
+        return html;
+    }
+}

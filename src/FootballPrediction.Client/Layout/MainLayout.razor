@@ -1,0 +1,70 @@
+@inherits LayoutComponentBase
+@inject PredictionApiClient ApiClient
+
+<div class="app-container">
+    <header class="cyber-navbar">
+        <div class="navbar-content">
+            <a href="" class="brand-logo">
+                <div class="brand-icon">⚡</div>
+                <div>
+                    <div class="brand-title">CYBER PREDICT</div>
+                </div>
+                <span class="brand-badge">AI v2.0</span>
+            </a>
+
+            <nav class="nav-pills-cyber">
+                <NavLink class="nav-pill-btn" href="" Match="NavLinkMatch.All">
+                    <span>⚽</span> Football
+                </NavLink>
+                <NavLink class="nav-pill-btn" href="twod">
+                    <span>🎲</span> 2D Live & AI
+                </NavLink>
+                <NavLink class="nav-pill-btn" href="threed">
+                    <span>🎯</span> 3D Forecast
+                </NavLink>
+                <NavLink class="nav-pill-btn" href="ai-arena">
+                    <span>🤖</span> AI Intel Arena
+                </NavLink>
+                <NavLink class="nav-pill-btn" href="settings">
+                    <span>⚙️</span> Settings
+                </NavLink>
+            </nav>
+
+            <!-- Active Engine Status Indicator -->
+            <a href="settings" style="text-decoration: none;">
+                <div class="sys-status-badge" style="cursor: pointer;" title="Click to view AI Engine Settings">
+                    <div class="live-pulse" style="background-color: @(isGeminiActive ? "var(--neon-cyan)" : "var(--neon-green)");"></div>
+                    <span style="font-weight: 700; color: @(isGeminiActive ? "var(--neon-cyan)" : "var(--neon-green)");">
+                        @(isGeminiActive ? "⚡ GEMINI AI MODEL: READY" : "🤖 SMART AI AGENT: ACTIVE")
+                    </span>
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        @Body
+    </main>
+
+    <footer style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; border-top: 1px solid var(--border-color); background: rgba(7, 10, 19, 0.9);">
+        <div>⚡ CYBER PREDICT AI - Real-Time Football Intelligence, Myanmar Odds, 1xBet & 2D/3D Analytics</div>
+        <div style="margin-top: 4px; font-size: 11px;">Powered by .NET 8 Blazor &amp; Web API &bull; Google Gemini &amp; Web Search Grounding Engine</div>
+    </footer>
+</div>
+
+@code {
+    private bool isGeminiActive = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var settings = await ApiClient.GetSettingsAsync();
+            if (settings != null)
+            {
+                isGeminiActive = settings.IsGeminiConfigured;
+            }
+        }
+        catch { }
+    }
+}

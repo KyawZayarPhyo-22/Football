@@ -1,0 +1,277 @@
+@page "/settings"
+@inject PredictionApiClient ApiClient
+
+<PageTitle>Settings & AI Engine Diagnostics | CYBER PREDICT</PageTitle>
+
+<div class="hero-hud">
+    <div class="hero-title">
+        <span>⚙️ စနစ် ဆက်တင်များနှင့် AI အခြေအနေ (Diagnostics)</span>
+        <span class="badge-odds" style="font-size: 13px; background: rgba(0,245,155,0.15); color: var(--neon-green); border: 1px solid var(--neon-green); padding: 4px 10px; border-radius: 6px;">
+            AI ENGINE v2.0
+        </span>
+    </div>
+    <p class="hero-desc">
+        ဤစနစ်သည် <code>appsettings.json</code> ထဲတွင် ထည့်သွင်းထားသော Google Gemini API Key ကို အလိုအလျောက် ဖတ်ယူ၍ Google Gemini AI Neural Network နှင့် Real-Time Web Search Grounding ကို ချိတ်ဆက်အသုံးပြုပါသည်။
+    </p>
+</div>
+
+<!-- Diagnostics / Active Status Hero Card -->
+<div class="game-card game-card-cyan" style="margin-bottom: 24px;">
+    <div class="section-header">
+        <div>
+            <h3 class="section-title">
+                <span>⚡ လက်ရှိ AI Engine လည်ပတ်နေမှု အခြေအနေ (Active Status)</span>
+            </h3>
+            <div class="section-subtitle">
+                Backend API မှ Gemini API Key နှင့် Agent အလုပ်လုပ်ပုံ အခြေအနေကို စစ်ဆေးပြသထားပါသည်
+            </div>
+        </div>
+        <div>
+            <button class="btn-cyber btn-cyber-cyan" @onclick="TestGeminiLive" disabled="@isTestingGemini">
+                @if (isTestingGemini)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>Google Gemini သို့ ဆက်သွယ်စစ်ဆေးနေသည်...</span>
+                }
+                else
+                {
+                    <span>🔌 Gemini API Live ချိတ်ဆက်မှု စမ်းသပ်ရန်</span>
+                }
+            </button>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin: 16px 0;">
+        <div class="odds-card" style="border-left: 3px solid var(--neon-cyan);">
+            <div class="odds-card-header">🔑 API Key အခြေအနေ</div>
+            <div style="font-size: 15px; font-weight: 700; color: #fff;">
+                @(settings?.IsGeminiConfigured == true ? "✓ Key Configured (appsettings.json)" : "✕ Key မရှိသေးပါ")
+            </div>
+            <div style="font-family: var(--font-code); font-size: 12px; color: var(--neon-cyan); margin-top: 4px;">
+                @(string.IsNullOrEmpty(settings?.GeminiApiKey) ? "None" : settings.GeminiApiKey)
+            </div>
+        </div>
+
+        <div class="odds-card" style="border-left: 3px solid var(--neon-green);">
+            <div class="odds-card-header">🤖 Active AI Engine</div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--neon-green);">
+                @(settings?.ActiveEngineStatus ?? "Checking...")
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                Web Search Grounding: <strong>ON</strong>
+            </div>
+        </div>
+
+        <div class="odds-card" style="border-left: 3px solid var(--neon-gold);">
+            <div class="odds-card-header">🧠 အသုံးပြုမည့် AI Model</div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--neon-gold); font-family: var(--font-code);">
+                @(settings?.AiModel ?? "gemini-3.8-flash")
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
+                Google Generative Language API
+            </div>
+        </div>
+    </div>
+
+    @if (geminiTestResult != null)
+    {
+        <div style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 16px; margin-top: 16px; border: 1px solid @(geminiTestResult.IsSuccess ? "var(--neon-green)" : "var(--neon-rose)");">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-weight: 700; font-size: 14px; color: @(geminiTestResult.IsSuccess ? "var(--neon-green)" : "var(--neon-rose)");">
+                    @(geminiTestResult.IsSuccess ? "🟢 GOOGLE GEMINI CONNECTION VERIFIED" : "🔴 CONNECTION FAILED")
+                </span>
+                <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-code);">
+                    @geminiTestResult.TestedAt.ToString("hh:mm:ss tt") UTC
+                </span>
+            </div>
+            <div style="font-size: 14px; color: #fff; font-weight: 600;">
+                @geminiTestResult.Message
+            </div>
+            @if (!string.IsNullOrEmpty(geminiTestResult.ResponseSnippet))
+            {
+                <div style="font-family: var(--font-code); font-size: 12px; color: var(--text-secondary); background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 6px; margin-top: 8px; overflow-x: auto;">
+                    Snippet: @geminiTestResult.ResponseSnippet
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 24px;">
+    <!-- API Key Settings Card -->
+    <div class="game-card game-card-green">
+        <h3 class="section-title" style="margin-bottom: 16px;">
+            <span>🔧 AI Model &amp; Key Configuration</span>
+        </h3>
+
+        <div class="settings-group">
+            <label class="settings-label">Gemini API Key</label>
+            <input type="password" class="settings-input" placeholder="AQ.Ab8... သို့မဟုတ် AIzaSy..." @bind="apiKeyInput" />
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+                <code>appsettings.json</code> ထဲတွင် ထည့်ထားပြီးပါက အလိုအလျောက် သုံးစွဲပါသည်။ ဤနေရာမှလည်း ပြင်ဆင်နိုင်ပါသည်။
+            </div>
+        </div>
+
+        <div class="settings-group">
+            <label class="settings-label">AI Model ရွေးချယ်မှု</label>
+            <select class="settings-input" @bind="selectedModel">
+                <option value="gemini-flash-lite-latest">Gemini Flash Lite (Fast &amp; High Quota - Recommended)</option>
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                <option value="gemini-3.8-flash">Gemini 3.8 Flash</option>
+                <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                <option value="gemini-flash-latest">Gemini Flash Latest</option>
+            </select>
+        </div>
+
+        <div class="settings-group">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" @bind="useSearch" style="width: 18px; height: 18px; accent-color: var(--neon-green);" />
+                <span style="font-size: 14px; font-weight: 600; color: #fff;">
+                    Real-Time Web Search Grounding ကို အမြဲ ဦးစွာ အသုံးပြုမည်
+                </span>
+            </label>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px; padding-left: 28px;">
+                DuckDuckGo / Live Web Crawling ဖြင့် အားကစားနှင့် ထီသတင်းများကို AI မခန့်မှန်းမီ ဦးစွာ စစ်ဆေးပေးပါသည်။
+            </div>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; gap: 12px; align-items: center;">
+            <button class="btn-cyber" @onclick="SaveSettings" disabled="@isSaving">
+                @if (isSaving)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>သိမ်းဆည်းနေသည်...</span>
+                }
+                else
+                {
+                    <span>💾 ဆက်တင်များ သိမ်းဆည်းရန်</span>
+                }
+            </button>
+            @if (saveSuccess)
+            {
+                <span style="color: var(--neon-green); font-size: 13px; font-weight: 700;">
+                    ✓ ဆက်တင်များ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- Backend Host Card -->
+    <div class="game-card game-card-purple">
+        <h3 class="section-title" style="margin-bottom: 16px;">
+            <span>🌐 Backend .NET 8 Web API Status</span>
+        </h3>
+
+        <div class="settings-group">
+            <label class="settings-label">API Server Base Address</label>
+            <input type="text" class="settings-input" @bind="apiBaseUrl" />
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+                ASP.NET Core Web API ၏ URL လိပ်စာ (Default: http://localhost:5006)
+            </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; margin-top: 20px;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--neon-purple); margin-bottom: 6px;">
+                ⚡ Smart Fallback Mechanism:
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6; margin: 0;">
+                Google Gemini API သည် ရံဖန်ရံခါ Server ဘက်မှ အလုပ်များခြင်း (503 High Demand) သို့မဟုတ် Network ကန့်သတ်ချက်များ ဖြစ်ပေါ်ပါက စနစ်သည် Error မပြဘဲ <strong>Autonomous Grounded AI Agent</strong> ဖြင့် အလိုအလျောက် Live Web Search လုပ်၍ ဆက်လက် ခန့်မှန်းပေးပါသည်။
+            </p>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button class="btn-cyber-outline" style="width: 100%;" @onclick="TestConnection">
+                🔌 Web API Server နှင့် ချိတ်ဆက်မှု စမ်းသပ်ရန်
+            </button>
+            @if (!string.IsNullOrEmpty(connectionStatus))
+            {
+                <div style="margin-top: 10px; font-size: 13px; font-weight: 700; text-align: center; color: @connectionColor;">
+                    @connectionStatus
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private SystemSettingsDto? settings;
+    private GeminiTestResultDto? geminiTestResult;
+    private string apiKeyInput = "";
+    private string selectedModel = "gemini-3.8-flash";
+    private bool useSearch = true;
+    private string apiBaseUrl = "http://localhost:5006";
+    private bool isSaving = false;
+    private bool saveSuccess = false;
+    private bool isTestingGemini = false;
+    private string? connectionStatus;
+    private string connectionColor = "var(--neon-green)";
+
+    protected override async Task OnInitializedAsync()
+    {
+        apiBaseUrl = ApiClient.ApiBaseUrl;
+        await LoadSettings();
+        // Automatically run initial Gemini ping test
+        await TestGeminiLive();
+    }
+
+    private async Task LoadSettings()
+    {
+        settings = await ApiClient.GetSettingsAsync();
+        if (settings != null)
+        {
+            apiKeyInput = settings.GeminiApiKey;
+            selectedModel = settings.AiModel;
+            useSearch = settings.UseSimulatedSearchIfOffline;
+        }
+    }
+
+    private async Task TestGeminiLive()
+    {
+        isTestingGemini = true;
+        geminiTestResult = await ApiClient.TestGeminiLiveAsync();
+        isTestingGemini = false;
+    }
+
+    private async Task SaveSettings()
+    {
+        isSaving = true;
+        saveSuccess = false;
+        ApiClient.ApiBaseUrl = apiBaseUrl;
+
+        var result = await ApiClient.UpdateSettingsAsync(new SystemSettingsDto
+        {
+            GeminiApiKey = apiKeyInput,
+            AiModel = selectedModel,
+            UseSimulatedSearchIfOffline = useSearch
+        });
+
+        isSaving = false;
+        saveSuccess = result != null;
+        if (saveSuccess)
+        {
+            await LoadSettings();
+            await TestGeminiLive();
+        }
+    }
+
+    private async Task TestConnection()
+    {
+        connectionStatus = "Testing connection...";
+        connectionColor = "var(--text-secondary)";
+        ApiClient.ApiBaseUrl = apiBaseUrl;
+
+        var live = await ApiClient.GetTwoDLiveAsync();
+        if (live != null)
+        {
+            connectionStatus = $"✓ ချိတ်ဆက်မှု အောင်မြင်ပါသည် (Live SET: {live.SetIndex:F2})";
+            connectionColor = "var(--neon-green)";
+        }
+        else
+        {
+            connectionStatus = "✕ ချိတ်ဆက်မှု မအောင်မြင်ပါ (Web API ဆာဗာ run ထားခြင်း ရှိမရှိ စစ်ဆေးပါ)";
+            connectionColor = "var(--neon-rose)";
+        }
+    }
+}

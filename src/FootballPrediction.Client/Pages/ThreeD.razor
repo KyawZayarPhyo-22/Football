@@ -1,0 +1,266 @@
+@page "/threed"
+@page "/3d"
+@inject PredictionApiClient ApiClient
+
+<PageTitle>Thai 3D Lottery AI Forecast | CYBER PREDICT</PageTitle>
+
+<!-- Hero Section -->
+<div class="hero-hud">
+    <div class="hero-title">
+        <span>🎯 ထိုင်း ၃လုံး (3D) အစိုးရထီ AI ခန့်မှန်းချက်နှင့် ထွက်ဂဏန်းများ</span>
+        <span class="badge-odds" style="font-size: 13px; background: rgba(168,85,247,0.15); color: var(--neon-purple); border: 1px solid var(--neon-purple); padding: 4px 10px; border-radius: 6px;">
+            THAI GLO 3D LOTTERY
+        </span>
+    </div>
+    <p class="hero-desc">
+        လစဉ် ၁ ရက် နှင့် ၁၆ ရက်နေ့များတွင် ထွက်ရှိသော ထိုင်းအစိုးရထီ ၃လုံး ထွက်ဂဏန်း သမိုင်းမှတ်တမ်းများ၊ အကြိမ်ရေ အများဆုံးထွက်ဂဏန်း (Frequency Distribution) နှင့် သင်္ချာပေါင်းလဒ်များကို AI မှ ရှာဖွေဆန်းစစ်၍ တိုက်ရိုက်ကွက်၊ R ပတ်လည်ကွက်များနှင့် ဂဏန်းပေါင်းလဒ်များကို ခန့်မှန်းပေးပါသည်။
+    </p>
+
+    <div class="hero-stats-row">
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">နောက်ဆုံးထွက် 3D ဂဏန်း</span>
+            <span class="hero-stat-val" style="color: var(--neon-purple);">
+                @(history?.FirstOrDefault()?.Result ?? "782")
+            </span>
+        </div>
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">နောက်ထပ် ထီဖွင့်ရက်</span>
+            <span class="hero-stat-val" style="color: var(--neon-green);">16 OCT 2026</span>
+        </div>
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">AI ယုံကြည်မှုနှုန်း</span>
+            <span class="hero-stat-val" style="color: var(--neon-cyan);">83.8%</span>
+        </div>
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">ထွက်ဂဏန်း ပေါင်းလဒ်</span>
+            <span class="hero-stat-val" style="color: #fff;">
+                @(history?.FirstOrDefault()?.DigitSum ?? 17)
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- AI 3D Prediction Card -->
+<div class="game-card game-card-purple" style="margin-bottom: 30px;">
+    <div class="section-header">
+        <div>
+            <h3 class="section-title" style="color: var(--neon-purple);">
+                <span>🔮 AI 3D Deep Neural Formula & Web Intel</span>
+            </h3>
+            <div class="section-subtitle">
+                ပြီးခဲ့သည့် လများ၏ ၃လုံးထီ ထွက်ဂဏန်း စာရင်းအင်းများကို Web Search ပြုလုပ်၍ အနာဂတ် ထွက်ဂဏန်းများကို ခန့်မှန်းပါ
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="text" class="settings-input" style="width: 160px;" @bind="targetDrawDate" placeholder="Target: 2026-10-16" />
+            <button class="btn-cyber" style="background: linear-gradient(135deg, var(--neon-purple), #7928ca); color: #fff;" @onclick="RunThreeDPrediction" disabled="@isPredicting">
+                @if (isPredicting)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>AI 3D ရှာဖွေတွက်ချက်နေသည်...</span>
+                }
+                else
+                {
+                    <span>⚡ AI 3D ခန့်မှန်းချက် ရယူရန်</span>
+                }
+            </button>
+        </div>
+    </div>
+
+    @if (prediction != null)
+    {
+        <div class="ai-pred-display" style="border-color: rgba(168, 85, 247, 0.4); background: linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(0,210,255,0.06) 100%);">
+            <div class="ai-pred-header">
+                <div>
+                    <span class="ai-badge" style="background: linear-gradient(90deg, var(--neon-purple), #d8b4fe); color: #000;">
+                        3D PREDICTION: @prediction.TargetDrawDate
+                    </span>
+                    <div style="font-size: 11px; color: var(--neon-purple); margin-top: 4px; font-weight: 700;">
+                        ⚡ Engine: @prediction.EngineUsed
+                    </div>
+                </div>
+                <div class="confidence-gauge" style="color: var(--neon-purple);">
+                    <span>ယုံကြည်မှုနှုန်း:</span>
+                    <span>@prediction.ConfidencePercentage%</span>
+                </div>
+            </div>
+
+            <!-- Direct Picks 3D Balls -->
+            <div style="background: rgba(0,0,0,0.35); border: 1px solid rgba(168,85,247,0.25); border-radius: 14px; padding: 20px; margin: 16px 0; text-align: center;">
+                <div style="font-size: 13px; font-weight: 700; color: var(--neon-purple); text-transform: uppercase; letter-spacing: 1px;">
+                    ⭐ ထိပ်တန်း တိုက်ရိုက်ကွက်များ (Top Direct 3D Picks) ⭐
+                </div>
+                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 14px;">
+                    @foreach (var pick in prediction.DirectPicks)
+                    {
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="three-d-balls-row" style="margin: 0 0 6px 0;">
+                                @for (int i = 0; i < pick.Length && i < 3; i++)
+                                {
+                                    <div class="three-d-ball">@pick[i]</div>
+                                }
+                            </div>
+                            <span style="font-family: var(--font-tech); font-size: 13px; color: var(--text-secondary);">Direct Pick</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Hot Digits & R-Picks Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 16px 0;">
+                <!-- Hot Digits -->
+                <div class="odds-card" style="border-color: rgba(168,85,247,0.2);">
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">
+                        🔥 အပူဆုံး ထွက်ဂဏန်းများ (Hot Digits)
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 8px;">
+                        @foreach (var d in prediction.HotDigits)
+                        {
+                            <span class="badge-number" style="color: var(--neon-purple); background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.3); font-size: 18px; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                                @d
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- R Picks -->
+                <div class="odds-card" style="border-color: rgba(0,210,255,0.2);">
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">
+                        🔄 R ပတ်လည် ၆ ခွင်ကွက်များ (Permutations)
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                        @foreach (var r in prediction.RPicks)
+                        {
+                            <span class="badge-number" style="color: var(--neon-cyan); background: rgba(0,210,255,0.15); border-color: rgba(0,210,255,0.3);">
+                                @r
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Digit Sums -->
+                <div class="odds-card" style="border-color: rgba(0,245,155,0.2);">
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">
+                        ➕ ပေါင်းလဒ် ခန့်မှန်းချက် (Digit Sums)
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                        @foreach (var s in prediction.DigitSums)
+                        {
+                            <span class="badge-number" style="color: var(--neon-green); background: rgba(0,245,155,0.15); border-color: rgba(0,245,155,0.3);">
+                                Sum @s
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Commentary -->
+            <div class="analysis-commentary" style="border-left-color: var(--neon-purple);">
+                @prediction.AiAnalysisExplanation
+            </div>
+
+            <!-- Web Intel Sources -->
+            @if (prediction.SearchedWebSources.Any())
+            {
+                <div class="sources-container">
+                    <div class="sources-header">🌐 AI ရှာဖွေစစ်ဆေးခဲ့သော ထိုင်းထီ သတင်းရင်းမြစ်များ:</div>
+                    <div>
+                        @foreach (var s in prediction.SearchedWebSources)
+                        {
+                            <a href="@s.Url" target="_blank" class="source-link-tag">
+                                🔗 @s.Domain (@s.Title.Substring(0, Math.Min(s.Title.Length, 35))...)
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Past Draws History Table -->
+<div class="game-card">
+    <div class="section-header">
+        <div>
+            <h3 class="section-title">
+                <span>📜 ယခင် လများ၏ ထိုင်း ၃လုံးထီ ထွက်ဂဏန်း သမိုင်းမှတ်တမ်းများ</span>
+            </h3>
+            <div class="section-subtitle">
+                ထိုင်းအစိုးရ ထီဖွင့်ရက် (၁ ရက် နှင့် ၁၆ ရက်) တရားဝင် ထွက်ဂဏန်းများ
+            </div>
+        </div>
+        <div style="color: var(--text-muted); font-size: 13px;">
+            မှတ်တမ်းစုစုပေါင်း: @(history?.Count ?? 0) ကြိမ်
+        </div>
+    </div>
+
+    @if (history == null)
+    {
+        <div style="text-align: center; padding: 20px; color: var(--text-secondary);">မှတ်တမ်းများ ရယူနေပါသည်...</div>
+    }
+    else
+    {
+        <div style="overflow-x: auto;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>ထီဖွင့်ရက် (Draw Date)</th>
+                        <th>ထိုင်း ၁ ဆုကြီး (1st Prize)</th>
+                        <th>၃လုံး ထွက်ဂဏန်း (Winning 3D)</th>
+                        <th>ဂဏန်းပေါင်းလဒ် (Sum)</th>
+                        <th>အသေးစိတ် / ရင်းမြစ်</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var rec in history)
+                    {
+                        <tr>
+                            <td style="font-weight: 600; color: #fff;">@rec.DrawDate</td>
+                            <td style="font-family: var(--font-code); color: var(--neon-gold); font-weight: 700; letter-spacing: 1px;">
+                                @(rec.FirstPrize ?? "--")
+                            </td>
+                            <td>
+                                <span class="badge-number" style="color: var(--neon-purple); background: rgba(168,85,247,0.15); border-color: rgba(168,85,247,0.3); font-size: 18px; letter-spacing: 2px;">
+                                    @rec.Result
+                                </span>
+                            </td>
+                            <td>
+                                <span style="font-family: var(--font-tech); font-weight: 700; color: var(--neon-cyan);">
+                                    @rec.DigitSum
+                                </span>
+                            </td>
+                            <td style="color: var(--text-secondary); font-size: 12px;">
+                                @rec.PrizeDetails
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ThreeDHistoryRecordDto>? history;
+    private ThreeDAiPredictionDto? prediction;
+    private string targetDrawDate = "2026-10-16";
+    private bool isPredicting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHistory();
+        await RunThreeDPrediction();
+    }
+
+    private async Task LoadHistory()
+    {
+        history = await ApiClient.GetThreeDHistoryAsync();
+    }
+
+    private async Task RunThreeDPrediction()
+    {
+        isPredicting = true;
+        prediction = await ApiClient.PredictThreeDAsync(targetDrawDate);
+        isPredicting = false;
+    }
+}

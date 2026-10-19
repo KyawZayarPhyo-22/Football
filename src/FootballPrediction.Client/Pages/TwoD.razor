@@ -1,0 +1,335 @@
+@page "/twod"
+@page "/2d"
+@inject PredictionApiClient ApiClient
+
+<PageTitle>Myanmar 2D Live & AI Prediction | CYBER PREDICT</PageTitle>
+
+<!-- Hero Section -->
+<div class="hero-hud">
+    <div class="hero-title">
+        <span>🎲 မြန်မာ့ ၂လုံး (2D) တိုက်ရိုက်ပေါက်စျေးနှင့် AI ခန့်မှန်းချက်</span>
+        <span class="badge-odds" style="font-size: 13px; background: rgba(255,183,3,0.15); color: var(--neon-gold); border: 1px solid var(--neon-gold); padding: 4px 10px; border-radius: 6px;">
+            THAI SET INDEX LIVE
+        </span>
+    </div>
+    <p class="hero-desc">
+        ထိုင်းစတော့အိတ်ချိန်း (SET Index) ၏ နောက်ဆုံးရ စတော့ဈေးနှုန်းများနှင့် ယခင်ရက်များ၊ လများ၏ ၂လုံးထွက်ဂဏန်း မှတ်တမ်းများကို AI မှ အင်တာနက်ပေါ်တွင် ရှာဖွေဆန်းစစ်ပြီး ကီး (Key)၊ ဘရိတ် (Break)၊ ပေါက်ဂဏန်း အကွက်များနှင့် ပါဝါ/နက္ခတ် တွဲများကို တိကျစွာ တွက်ချက်ခန့်မှန်းပေးပါသည်။
+    </p>
+
+    <div class="hero-stats-row">
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">ယနေ့ 2D ပေါက်ဂဏန်း</span>
+            <span class="hero-stat-val" style="color: var(--neon-gold);">@(liveSet?.Current2D ?? "--")</span>
+        </div>
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">မနက်ပိုင်း (12:01 PM)</span>
+            <span class="hero-stat-val" style="color: var(--neon-green);">@(string.IsNullOrEmpty(liveSet?.MorningResult) || liveSet.MorningResult == "--" ? "PENDING" : liveSet.MorningResult)</span>
+        </div>
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">ညနေပိုင်း (04:30 PM)</span>
+            <span class="hero-stat-val" style="color: var(--neon-cyan);">@(string.IsNullOrEmpty(liveSet?.EveningResult) || liveSet.EveningResult == "--" ? "PENDING" : liveSet.EveningResult)</span>
+        </div>
+        <div class="hero-stat-card">
+            <span class="hero-stat-label">SET အညွှန်းကိန်း</span>
+            <span class="hero-stat-val" style="color: #fff;">@(liveSet != null ? $"{liveSet.SetIndex:F2}" : "--")</span>
+        </div>
+    </div>
+</div>
+
+<!-- 2D Live Display Board -->
+@if (liveSet != null)
+{
+    <div class="twod-live-board">
+        <div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">
+                🔴 LIVE THAI STOCK EXCHANGE (SET)
+            </div>
+            <div style="font-size: 22px; font-weight: 800; color: #fff;">@liveSet.FormattedDate</div>
+            <div style="font-size: 12px; color: var(--neon-cyan); margin-top: 4px;">
+                အခြေအနေ: <span style="font-weight: 700;">@liveSet.Status</span> &bull; Trend: @liveSet.MarketTrend
+            </div>
+            <div style="margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap;">
+                <span class="badge-odds" style="font-size: 11px; background: rgba(0,255,136,0.1); color: var(--neon-green); border: 1px solid rgba(0,255,136,0.3); padding: 2px 8px; border-radius: 4px;">
+                    ၁၁:၀၀ AM အဖွင့်: @(liveSet.MorningOpen ?? "--")
+                </span>
+                <span class="badge-odds" style="font-size: 11px; background: rgba(0,210,255,0.1); color: var(--neon-cyan); border: 1px solid rgba(0,210,255,0.3); padding: 2px 8px; border-radius: 4px;">
+                    ၀၃:၀၀ PM အဖွင့်: @(liveSet.AfternoonOpen ?? "--")
+                </span>
+            </div>
+            <div style="font-size: 11px; color: var(--neon-gold); font-family: var(--font-code); margin-top: 6px;">
+                📡 ဒေတာရင်းမြစ်: @(liveSet.DataSource ?? "The Stock Exchange of Thailand (SET) & ThaiStock2D Official Live")
+            </div>
+        </div>
+
+        <div class="twod-big-ball" title="Current Thai SET 2D Calculation">
+            @liveSet.Current2D
+        </div>
+
+        <div class="twod-metrics-col">
+            <div class="twod-metric-pill">
+                <span class="metric-name">SET Index:</span>
+                <span class="metric-val">@liveSet.SetIndex.ToString("N2")</span>
+            </div>
+            <div class="twod-metric-pill">
+                <span class="metric-name">Value (Million ฿):</span>
+                <span class="metric-val">@liveSet.SetValue.ToString("N2")</span>
+            </div>
+            <div class="twod-metric-pill">
+                <span class="metric-name">နောက်ဆုံး အပ်ဒိတ်:</span>
+                <span style="font-family: var(--font-code); font-size: 12px; color: var(--text-secondary);">
+                    @liveSet.LastUpdated.ToString("hh:mm:ss tt")
+                </span>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- AI Prediction Control & Card -->
+<div class="game-card game-card-gold" style="margin-bottom: 30px;">
+    <div class="section-header">
+        <div>
+            <h3 class="section-title" style="color: var(--neon-gold);">
+                <span>🧠 AI 2D Master Formula & Web Intel Predictor</span>
+            </h3>
+            <div class="section-subtitle">
+                ယခင်လများ၊ ရက်များ၏ SET အတက်အကျနှင့် သမိုင်းဝင် ပေါက်ဂဏန်းများကို Web Search ပြုလုပ်၍ ခန့်မှန်းချက် ထုတ်ယူပါ
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <select class="settings-input" style="width: auto; border-color: rgba(255,183,3,0.4);" @bind="selectedTargetDay">
+                <option value="Today">📅 ဒီနေ့အတွက် (Today)</option>
+                <option value="Tomorrow">⚡ မနက်ဖြန်အတွက် (Tomorrow)</option>
+            </select>
+            <select class="settings-input" style="width: auto;" @bind="selectedSession">
+                <option value="Full Day">တနေကုန် (Full Day)</option>
+                <option value="12:01 PM (Morning)">မနက်ပိုင်း (12:01 PM)</option>
+                <option value="04:30 PM (Evening)">ညနေပိုင်း (04:30 PM)</option>
+            </select>
+            <button class="btn-cyber" style="background: linear-gradient(135deg, var(--neon-gold), #e07a5f); color: #000; font-weight: 700;" @onclick="() => RunTwoDPrediction(false)" disabled="@isPredicting">
+                @if (isPredicting)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                    <span>AI Web Search &amp; ဆန်းစစ်နေသည်...</span>
+                }
+                else
+                {
+                    <span>⚡ @(selectedTargetDay == "Tomorrow" ? "မနက်ဖြန်အတွက် AI ခန့်မှန်းရန်" : "AI ခန့်မှန်းချက် ရယူရန်")</span>
+                }
+            </button>
+            @if (prediction != null)
+            {
+                <button class="btn-cyber" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: var(--text-secondary); padding: 8px 12px; font-size: 13px;" @onclick="() => RunTwoDPrediction(true)" disabled="@isPredicting" title="အသစ်ပြန်လည် တွက်ချက်ခိုင်းလိုပါက နှိပ်ပါ">
+                    🔄 အသစ်ပြန်တွက်ရန်
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (prediction != null)
+    {
+        <div class="ai-pred-display" style="border-color: rgba(255, 183, 3, 0.4);">
+            <div class="ai-pred-header">
+                <div>
+                    <span class="ai-badge" style="background: linear-gradient(90deg, var(--neon-gold), #ffd166);">
+                        2D AI VERDICT: @prediction.Session (@prediction.TargetDate)
+                    </span>
+                    <div style="font-size: 11px; color: var(--neon-gold); margin-top: 4px; font-weight: 700;">
+                        ⚡ Engine: @prediction.EngineUsed &bull; <span style="color: var(--neon-green);">🔒 တည်ငြိမ်ပြီးသော ခန့်မှန်းချက် (@prediction.GeneratedAt.ToLocalTime().ToString("hh:mm tt"))</span>
+                    </div>
+                </div>
+                <div class="confidence-gauge" style="color: var(--neon-gold);">
+                    <span>AI ယုံကြည်မှုနှုန်း:</span>
+                    <span>@prediction.ConfidencePercentage%</span>
+                </div>
+            </div>
+
+            <!-- Key, Break, Numbers Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin: 16px 0;">
+                <!-- Key -->
+                <div class="odds-card" style="border-color: rgba(255,183,3,0.2);">
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">
+                        🔑 အဓိက ကီး (Key Numbers)
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                        @foreach (var k in prediction.KeyNumbers)
+                        {
+                            <span class="badge-number">@k</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Break -->
+                <div class="odds-card" style="border-color: rgba(0,210,255,0.2);">
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">
+                        🛑 အပိတ် ဘရိတ် (Break Numbers)
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                        @foreach (var b in prediction.BreakNumbers)
+                        {
+                            <span class="badge-number" style="color: var(--neon-cyan); background: rgba(0,210,255,0.15); border-color: rgba(0,210,255,0.3);">
+                                @b
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Power & Natkhat -->
+                <div class="odds-card" style="border-color: rgba(168,85,247,0.2);">
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">
+                        ⚡ ပါဝါ / နက္ခတ် တွဲများ
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                        @foreach (var p in prediction.PowerNatKhatPairs)
+                        {
+                            <span style="font-family: var(--font-tech); font-size: 13px; font-weight: 700; color: var(--neon-purple); background: rgba(168,85,247,0.15); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(168,85,247,0.3);">
+                                @p
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Apar -->
+                <div class="odds-card" style="border-color: rgba(0,245,155,0.2);">
+                    <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">
+                        👥 အပူးဂဏန်းများ (Double Digits)
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                        @foreach (var a in prediction.AparNumbers)
+                        {
+                            <span class="badge-number" style="color: var(--neon-green); background: rgba(0,245,155,0.15); border-color: rgba(0,245,155,0.3);">
+                                @a
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Direct Picks Highlight -->
+            <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,183,3,0.3); border-radius: 12px; padding: 16px; margin: 16px 0; text-align: center;">
+                <div style="font-size: 12px; text-transform: uppercase; color: var(--neon-gold); font-weight: 700; letter-spacing: 1px;">
+                    ⭐ အကြိုက်ဆုံး ထိပ်တန်း ထိုးကွက်များ (Top Recommended Direct Picks) ⭐
+                </div>
+                <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 12px;">
+                    @foreach (var num in prediction.TopDirectNumbers)
+                    {
+                        <div style="font-family: var(--font-tech); font-size: 28px; font-weight: 900; color: #fff; background: linear-gradient(135deg, rgba(255,183,3,0.3), rgba(255,159,28,0.2)); border: 2px solid var(--neon-gold); width: 62px; height: 62px; border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(255,183,3,0.25);">
+                            @num
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Detailed Analysis Explanation -->
+            <div class="analysis-commentary" style="border-left-color: var(--neon-gold);">
+                @prediction.AiAnalysisExplanation
+            </div>
+
+            <!-- Web Intel Sources -->
+            @if (prediction.SearchedWebSources.Any())
+            {
+                <div class="sources-container">
+                    <div class="sources-header">🌐 AI ရှာဖွေစစ်ဆေးခဲ့သော စတော့ဈေးကွက်နှင့် ထီသတင်းရင်းမြစ်များ:</div>
+                    <div>
+                        @foreach (var s in prediction.SearchedWebSources)
+                        {
+                            <a href="@s.Url" target="_blank" class="source-link-tag">
+                                🔗 @s.Domain (@s.Title.Substring(0, Math.Min(s.Title.Length, 35))...)
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Historical Records Table -->
+<div class="game-card">
+    <div class="section-header">
+        <div>
+            <h3 class="section-title">
+                <span>📜 ပြီးခဲ့သော ရက်များနှင့် လများ၏ ၂လုံးထွက်ဂဏန်း မှတ်တမ်းများ</span>
+            </h3>
+            <div class="section-subtitle">
+                ထိုင်းစတော့ဈေးကွက် (SET) နှင့် တိုက်ရိုက်ချိတ်ဆက်ထားသော နေ့စဉ် မနက် / ညနေ မှတ်တမ်းများ
+            </div>
+        </div>
+        <div style="color: var(--text-muted); font-size: 13px;">
+            မှတ်တမ်းစုစုပေါင်း: @(history?.Count ?? 0) ရက်
+        </div>
+    </div>
+
+    @if (history == null)
+    {
+        <div style="text-align: center; padding: 20px; color: var(--text-secondary);">မှတ်တမ်းများ ရယူနေပါသည်...</div>
+    }
+    else
+    {
+        <div style="overflow-x: auto;">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>ရက်စွဲ (Date)</th>
+                        <th>နေ့ (Day)</th>
+                        <th>မနက် (12:01 PM)</th>
+                        <th>မနက် SET / Value</th>
+                        <th>ညနေ (04:30 PM)</th>
+                        <th>ညနေ SET / Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var rec in history)
+                    {
+                        <tr>
+                            <td style="font-weight: 600; color: #fff;">@rec.Date</td>
+                            <td style="color: var(--neon-cyan);">@rec.DayOfWeek</td>
+                            <td>
+                                <span class="badge-number">@(rec.MorningResult ?? "--")</span>
+                            </td>
+                            <td style="font-family: var(--font-code); font-size: 12px; color: var(--text-secondary);">
+                                SET: @rec.MorningSet &bull; Val: @rec.MorningValue
+                            </td>
+                            <td>
+                                <span class="badge-number" style="color: var(--neon-cyan); background: rgba(0,210,255,0.15); border-color: rgba(0,210,255,0.3);">
+                                    @(rec.EveningResult ?? "--")
+                                </span>
+                            </td>
+                            <td style="font-family: var(--font-code); font-size: 12px; color: var(--text-secondary);">
+                                SET: @rec.EveningSet &bull; Val: @rec.EveningValue
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private TwoDLiveDto? liveSet;
+    private List<TwoDHistoryRecordDto>? history;
+    private TwoDAiPredictionDto? prediction;
+    private string selectedSession = "Full Day";
+    private string selectedTargetDay = "Today";
+    private bool isPredicting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        // Run initial AI prediction
+        await RunTwoDPrediction();
+    }
+
+    private async Task LoadData()
+    {
+        liveSet = await ApiClient.GetTwoDLiveAsync();
+        history = await ApiClient.GetTwoDHistoryAsync();
+    }
+
+    private async Task RunTwoDPrediction(bool forceRefresh = false)
+    {
+        isPredicting = true;
+        prediction = await ApiClient.PredictTwoDAsync(selectedSession, selectedTargetDay, forceRefresh);
+        isPredicting = false;
+    }
+}

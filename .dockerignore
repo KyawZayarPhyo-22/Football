@@ -1,0 +1,11 @@
+**/.git
+**/.github
+**/.vscode
+**/.idea
+**/bin
+**/obj
+**/test_publish
+**/scratch
+**/*.user
+**/*.suo
+*.md
