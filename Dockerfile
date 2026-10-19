@@ -8,14 +8,14 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution and project definitions for layer caching
-COPY FootballPrediction.slnx ./
+# Copy standard .sln and project definitions for layer caching
+COPY FootballPrediction.sln ./
 COPY src/FootballPrediction.Shared/*.csproj ./src/FootballPrediction.Shared/
 COPY src/FootballPrediction.Api/*.csproj ./src/FootballPrediction.Api/
 COPY src/FootballPrediction.Client/*.csproj ./src/FootballPrediction.Client/
 
-# Restore dependencies
-RUN dotnet restore FootballPrediction.slnx
+# Restore dependencies using standard solution file
+RUN dotnet restore FootballPrediction.sln
 
 # Copy all remaining source code
 COPY src/ ./src/
